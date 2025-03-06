@@ -1,14 +1,14 @@
 ﻿
-namespace CoreEngine
+namespace Predator.CoreEngine.Players
 {
-    abstract public class Players
+    public abstract class Player
     {
         public int position;
         public string iAm;
-        public Players() { }
+        public Player() { }
     }
 
-    public class Tiger : Players
+    public class Tiger : Player
     {
         public Tiger(int pos)
         {
@@ -21,7 +21,7 @@ namespace CoreEngine
         }
     }
 
-    public class Goat : Players
+    public class Goat : Player
     {
         public Goat(int pos)
         {
@@ -30,9 +30,9 @@ namespace CoreEngine
         }
     }
 
-    public class Utils : Players
+    public class Utils : Player
     {
-        public void move(Players X, int pos)
+        public void move(Player X, int pos)
         {
             X.position = pos;
         }

@@ -1,124 +1,134 @@
-﻿using CoreEngine;
-using graphedBoard;
+﻿using Predator.CoreEngine.Players;
+using Predator.CoreEngine.graphedBoard;
 
-public class Game
+namespace Predator.CoreEngine.Game
 {
-    public void inGame()
+    public class Game
     {
-        Board board = new Board();
 
-        // Declare and initialize the array of Tiger objects
-        Tiger[] tigers = new Tiger[4];
-        int[] tigerPositions = { 1, 5, 21, 25 };
-
-        for (int i = 0; i < tigers.Length; i++)
+        // Whenever a new "Game" is instantiated, these things need to happen
+        public Board board = new Board();
+        public Tiger[] tigers = new Tiger[4];
+        public int[] tigerPositions = { 1, 5, 21, 25 };
+        public bool turn = true;
+        public int avilableGoats = 20;
+        public Goat[] goats = new Goat[20];
+        
+        public Game()
         {
-            tigers[i] = new Tiger(tigerPositions[i]);
-            board.putComponentInBoard(tigers[i], tigerPositions[i]);
-        }
-
-
-
-
-
-        bool turn = true; // turn = 1 for Goat and turn = 0 for Tiger
-        int avilableGoats = 20;
-        Goat[] goats = new Goat[20];
-
-        while (true)
-        {
-            if (turn)
+            for (int i = 0; i < tigers.Length; i++)
             {
-                if (avilableGoats != 0)
+                tigers[i] = new Tiger(tigerPositions[i]);
+                board.putComponentInBoard(tigers[i], tigerPositions[i]);
+            }
+        }
+       
+        public void inGame()
+        {
+
+            // Main Game Loop
+            while (true)
+            {
+                if (turn)
                 {
-                    int pos = 0;
-                    // Add goat
-                    do
+                    if (avilableGoats != 0)
                     {
-                        Console.WriteLine("Enter postion of goat: ");
-                        string input = Console.ReadLine();
-                        int.TryParse(input, out pos);
-
-                        if (board.GetComponentPlacement()[pos] != null)
+                        int pos = 0;
+                        // Add goat
+                        do
                         {
-                            Console.WriteLine("Invalid Placement!");
-                            pos = 0;
-                        }
-                    } while (pos == 0);
+                            Console.WriteLine("Enter postion of goat: ");
+                            string input = Console.ReadLine();
+                            int.TryParse(input, out pos);
 
-                    Goat goat = new Goat(pos);
-                    goats[20 - avilableGoats] = goat;
-                    board.putComponentInBoard(goat, pos);
-                    avilableGoats -= 1;
+                            if (board.GetComponentPlacement()[pos] != null)
+                            {
+                                Console.WriteLine("Invalid Placement!");
+                                pos = 0;
+                            }
+                        } while (pos == 0);
+
+                        Goat goat = new Goat(pos);
+                        goats[20 - avilableGoats] = goat;
+                        board.putComponentInBoard(goat, pos);
+                        avilableGoats -= 1;
+                    }
+                    else
+                    {
+                        // Move goat
+
+                    }
                 }
                 else
                 {
-                    // Move goat
+                    bool flag = true;
+                    int currentPos = 0;
+                    int newPos = 0;
 
-                }
-            }
-            else
-            {
-                bool flag = true;
-                int currentPos = 0;
-                int newPos = 0;
-
-                do
-                {
-                    Console.WriteLine("Enter the current position of the tiger: ");
-                    string currentPosInput = Console.ReadLine();
-                    Console.WriteLine("Enter the new position of the tiger: ");
-                    string newPosInput = Console.ReadLine();
-                    if (int.TryParse(currentPosInput, out currentPos) && int.TryParse(newPosInput, out newPos))
+                    do
                     {
-                        var tigerMov = (currentPos, newPos);
-                        // Deconstruct the tuple
-                        (int from, int to) = tigerMov;
-
-                        foreach (Tiger t in tigers)
+                        Console.WriteLine("Enter the current position of the tiger: ");
+                        string currentPosInput = Console.ReadLine();
+                        Console.WriteLine("Enter the new position of the tiger: ");
+                        string newPosInput = Console.ReadLine();
+                        if (int.TryParse(currentPosInput, out currentPos) && int.TryParse(newPosInput, out newPos))
                         {
-                            if (t.position == currentPos)
+                            var tigerMov = (currentPos, newPos);
+                            // Deconstruct the tuple
+                            (int from, int to) = tigerMov;
+
+                            foreach (Tiger t in tigers)
                             {
-                                if (!board.moveValidation(tigers[0], to, from))
+                                if (t.position == currentPos)
                                 {
-                                    Console.WriteLine("Invalid move for tiger! ");
-                                }
-                                else
-                                {
-                                    flag = !flag;
-                                }
+                                    if (!board.moveValidation(tigers[0], to, from))
+                                    {
+                                        Console.WriteLine("Invalid move for tiger! ");
+                                    }
+                                    else
+                                    {
+                                        flag = !flag;
+                                    }
 
+                                }
                             }
+
                         }
+                    } while (flag);
 
-                    }
-                } while (flag);
-
-                foreach (Tiger t in tigers)
-                {
-                    if (t.position == currentPos)
+                    foreach (Tiger t in tigers)
                     {
-                        t.position = newPos;
-                        // If there was a goat in between, remove it! 
-                        //if((currentPos+newPos)/2)
-                        if (!board.getGraph().HasEdge(currentPos, newPos))
+                        if (t.position == currentPos)
                         {
-                            goats[(currentPos + newPos) / 2] = null;
-                            board.removeComponentFromBoard((currentPos + newPos) / 2);
-                        }
+                            t.position = newPos;
+                            // If there was a goat in between, remove it! 
+                            //if((currentPos+newPos)/2)
+                            if (!board.getGraph().HasEdge(currentPos, newPos))
+                            {
+                                goats[(currentPos + newPos) / 2] = null;
+                                board.removeComponentFromBoard((currentPos + newPos) / 2);
+                            }
 
-                        board.putComponentInBoard(t, newPos);
-                        board.removeComponentFromBoard(currentPos);
-                        break;
+                            board.putComponentInBoard(t, newPos);
+                            board.removeComponentFromBoard(currentPos);
+                            break;
+                        }
                     }
                 }
-            }
 
-            // Print board
-            turn = !turn;
-            board.PrintBoard();
-            //board.getGraph().traverse(1,4);
+                // Print board
+                turn = !turn;
+                board.PrintBoard();
+                //board.getGraph().traverse(1,4);
+            }
         }
+
     }
+
+    public class communication:Game
+    {
+
+    }
+
 
 }
