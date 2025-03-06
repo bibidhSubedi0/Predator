@@ -15,10 +15,6 @@ namespace Predator.CoreEngine.Players
             iAm = "T";
             position = pos;
         }
-        public void TigerCore(Tiger B)
-        {
-
-        }
     }
 
     public class Goat : Player

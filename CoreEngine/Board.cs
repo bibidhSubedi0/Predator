@@ -88,7 +88,6 @@ using Predator.CoreEngine.Players;
         {
             Graph boardGraph = new Graph();
             Dictionary<int, Player> ComponentPlacement = new Dictionary<int, Player>(26);
-
             public Board()
             {
                 // Initilizing the edges of the graph

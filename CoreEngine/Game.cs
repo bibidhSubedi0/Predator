@@ -5,7 +5,6 @@ namespace Predator.CoreEngine.Game
 {
     public class Game
     {
-
         // Whenever a new "Game" is instantiated, these things need to happen
         public Board board = new Board();
         public Tiger[] tigers = new Tiger[4];
@@ -20,12 +19,11 @@ namespace Predator.CoreEngine.Game
             {
                 tigers[i] = new Tiger(tigerPositions[i]);
                 board.putComponentInBoard(tigers[i], tigerPositions[i]);
-            }
+            }   
         }
        
         public void inGame()
         {
-
             // Main Game Loop
             while (true)
             {
@@ -123,12 +121,33 @@ namespace Predator.CoreEngine.Game
             }
         }
 
+        public bool GetTurn()
+        {
+            return turn;
+        }
+
+
+        public Board GetBoard()
+        {
+            return board;
+        }
+
+        public Tiger[] GetTigers()
+        {
+            return tigers;
+        }
+
+        public Goat[] GetGoats()
+        {
+            return goats;
+        }
+
+        public int GetAvailableGoats()
+        {
+            return avilableGoats;
+        }
+
+
     }
-
-    public class communication:Game
-    {
-
-    }
-
 
 }

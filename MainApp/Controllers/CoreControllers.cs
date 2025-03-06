@@ -1,29 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Predator.CoreEngine;
-using Predator.CoreEngine.Game;
-using Predator.CoreEngine.graphedBoard;
+﻿using Predator.CoreEngine.Game;
 using Predator.CoreEngine.Players;
+using Predator.CoreEngine.graphedBoard;
 
-
-
-namespace BaghchalApp
+namespace Predator.GameApp
 {
     public class CoreControllers
     {
-        private Board _board;
         private Game _game;
 
         public CoreControllers()
         {
-            _board = new Board();
             _game = new Game();
         }
 
-        // Other code...
+        public void StartGame()
+        {
+            _game.inGame();  
+        }
+
+        public Board GetBoardState()
+        {
+            return _game.GetBoard();
+        }
+
+        public Tiger[] GetTigers()
+        {
+            return _game.GetTigers();
+        }
+
+        public Goat[] GetGoats()
+        {
+            return _game.GetGoats();
+        }
+
+        public int GetAvailableGoats()
+        {
+            return _game.GetAvailableGoats();
+        }
+
+        public bool GetTurn()
+        {
+            return _game.GetTurn();
+        }
     }
 }

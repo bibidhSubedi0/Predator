@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Input;
 
+using Predator.GameApp;
+using Predator.CoreEngine.Players;
+
 namespace UIPredator
 {
     public partial class MainWindow : Window
@@ -12,17 +15,41 @@ namespace UIPredator
         private const int GridSize = 5;
         private const double CellSize = 100;
 
-        private List<Ellipse> tigers = new List<Ellipse>();
-        private List<Ellipse> goats = new List<Ellipse>();
+        private CoreControllers coreAPI;
 
         public MainWindow()
         {
             InitializeComponent();
-            DrawBoard();
-            //PlaceInitialTigers();
+            coreAPI = new CoreControllers();
 
-            //BoardCanvas.MouseLeftButtonDown += PlaceGoat;
+
+            DrawBoard();
         }
+
+
+
+        public void StartGameButtonClick(object sender, RoutedEventArgs e)
+        {
+
+            MessageBox.Show(coreAPI.GetAvailableGoats().ToString());
+
+            foreach(Tiger t in coreAPI.GetTigers())
+            {
+                MessageBox.Show(t.position.ToString());
+            }
+
+            MessageBox.Show(coreAPI.GetGoats().Length.ToString());
+
+            MessageBox.Show(coreAPI.GetBoardState().GetComponentPlacement()[1].iAm);
+
+
+            MessageBox.Show(coreAPI.GetTurn().ToString());
+
+
+        }
+
+
+
 
         private void DrawBoard()
         {
@@ -64,22 +91,10 @@ namespace UIPredator
             BoardCanvas.Children.Add(line);
         }
 
-        private Ellipse CreatePiece(Brush color)
-        {
-            return new Ellipse
-            {
-                Width = 30,
-                Height = 30,
-                Fill = color,
-                Stroke = Brushes.Black,
-                StrokeThickness = 2
-            };
-        }
 
-        private void PositionPiece(Ellipse piece, int row, int col)
-        {
-            Canvas.SetLeft(piece, col * CellSize + (CellSize - piece.Width) / 2);
-            Canvas.SetTop(piece, row * CellSize + (CellSize - piece.Height) / 2);
-        }
+
+
+
+
     }
 }
