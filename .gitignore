@@ -97,3 +97,4 @@ project.fragment.lock.json
 # .NET Core
 .project.json
 artifacts/
+/ArchitectureDetails.txt
