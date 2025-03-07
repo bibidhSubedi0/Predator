@@ -7,16 +7,70 @@ namespace Predator.GameApp
     public class CoreControllers
     {
         private Game _game;
+        private CancellationTokenSource _cts;
+
+
+        public event Action<string> GameStatusChanged;
+        public event Action<string> GameEventLogged;
 
         public CoreControllers()
         {
             _game = new Game();
+            _cts = new CancellationTokenSource();
+
+            // Forward game events to UI
+            _game.GameStateChanged += () => GameStateUpdated?.Invoke();
+            _game.LogMessage += (msg) => LogMessage?.Invoke(msg);
         }
 
-        public void StartGame()
+        public async Task StartGameAsync()
         {
-            _game.inGame();  
+            LogMessage?.Invoke("Game starting...");
+            GameStatusChanged?.Invoke("Game Running");
+
+            try
+            {
+                await Task.Run(() => _game.inGame(_cts.Token), _cts.Token);
+                LogMessage?.Invoke("Game loop completed successfully.");
+            }
+            catch (OperationCanceledException)
+            {
+                LogMessage?.Invoke("Game was cancelled.");
+            }
+            catch (Exception ex)
+            {
+                LogMessage?.Invoke($"Error in StartGameAsync: {ex.Message}");
+            }
+            finally
+            {
+                GameStatusChanged?.Invoke("Game Stopped");
+            }
         }
+
+        public void LogGameEvent(string message)
+        {
+            GameEventLogged?.Invoke($"[{DateTime.Now:T}] {message}");
+        }
+
+        // UI Input Forwarding
+        public void PlaceGoat(int position)
+        {
+            LogMessage?.Invoke($"Attempting to place goat at {position}");
+            _game.NotifyGoatPlacement(position);
+        }
+        public void MoveTiger(int from, int to) => _game.NotifyTigerMove(from, to);
+
+        // Events
+        public event Action GameStateUpdated;
+        public event Action<string> LogMessage;
+
+
+        public void StopGame() => _cts.Cancel();
+
+        //public void StartGame()
+        //{
+        //    _game.inGame();  
+        //}
 
         public Board GetBoardState()
         {

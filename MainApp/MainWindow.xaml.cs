@@ -7,6 +7,7 @@ using System.Windows.Input;
 
 using Predator.GameApp;
 using Predator.CoreEngine.Players;
+using System.ComponentModel;
 
 namespace UIPredator
 {
@@ -14,38 +15,86 @@ namespace UIPredator
     {
         private const int GridSize = 5;
         private const double CellSize = 100;
-
-        private CoreControllers coreAPI;
+        private CoreControllers _core;
 
         public MainWindow()
         {
             InitializeComponent();
-            coreAPI = new CoreControllers();
+            _core = new CoreControllers();
+            _core.GameStateUpdated += UpdateUI;
 
+            // Use only the method handler
+            _core.LogMessage += LogMessageHandler;
 
+            _core.GameStatusChanged += UpdateGameStatus;
             DrawBoard();
         }
-
-
-
-        public void StartGameButtonClick(object sender, RoutedEventArgs e)
+        private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
-
-            MessageBox.Show(coreAPI.GetAvailableGoats().ToString());
-
-            foreach(Tiger t in coreAPI.GetTigers())
+            var button = (Button)sender;
+            try
             {
-                MessageBox.Show(t.position.ToString());
+                button.IsEnabled = false;
+                await _core.StartGameAsync();
             }
+            finally
+            {
+                button.IsEnabled = true;
+            }
+        }
 
-            MessageBox.Show(coreAPI.GetGoats().Length.ToString());
+        private void LogMessageHandler(string message)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                LogTextBox.AppendText($"{DateTime.Now:HH:mm:ss} - {message}\n");
+                LogTextBox.ScrollToEnd();
+            });
+        }
 
-            MessageBox.Show(coreAPI.GetBoardState().GetComponentPlacement()[1].iAm);
+        private void UpdateGameStatus(string status)
+        {
+            Dispatcher.Invoke(() =>
+            {
 
+            });
+        }
 
-            MessageBox.Show(coreAPI.GetTurn().ToString());
+        private void UpdateUI()
+        {
+            //Dispatcher.Invoke(() =>
+            //{
+            //    // Update board visualization
+            //    BoardPanel.Children.Clear();
+            //    foreach (var component in _core.GetBoardState().GetComponents())
+            //    {
+            //        DrawComponent(component); // Your custom rendering logic
+            //    }
 
+            //    // Update turn indicator
+            //    TurnText.Text = _core.GetTurn() ? "Tiger's Turn" : "Goat's Turn";
+            //});
+        }
 
+        private void BoardPosition_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            int position = (int)button.Tag;
+
+            if (!_core.GetTurn()) // Goat's turn
+            {
+                _core.PlaceGoat(position);
+            }
+            else // Tiger's turn
+            {
+                // For tiger move: first click selects tiger, second selects destination
+                // (Implement your own logic for two-step selection)
+            }
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            _core.StopGame();
         }
 
 

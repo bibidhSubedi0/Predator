@@ -7,7 +7,15 @@
         <Canvas x:Name="BoardCanvas" Background="LightGreen"/>
 
         <!-- Add a Button -->
-        <Button Content="Start Game" Width="100" Height="50" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20" Click="StartGameButtonClick"/>
+        <!-- Add these elements inside your main layout panel -->
+        <StackPanel>
+            <Button x:Name="StartButton" Content="Start Game" Click="StartGameButtonClick"/>
+             <TextBox x:Name="LogTextBox" 
+             Height="250"
+             IsReadOnly="True" 
+             VerticalScrollBarVisibility="Auto"
+             Margin="5"/>
+        </StackPanel>
     </Grid>
 
 </Window>

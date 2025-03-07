@@ -13,6 +13,17 @@ namespace Predator.CoreEngine.Game
         public int avilableGoats = 20;
         public Goat[] goats = new Goat[20];
         
+
+        // Async Input Handling
+        private SemaphoreSlim _goatPlacementWaiter = new SemaphoreSlim(0);
+        private SemaphoreSlim _tigerMoveWaiter = new SemaphoreSlim(0);
+        private int _pendingGoatPosition;
+        private (int from, int to) _pendingTigerMove;
+
+        public event Action GameStateChanged;
+        public event Action<string> LogMessage;  // For debugging/logging
+
+
         public Game()
         {
             for (int i = 0; i < tigers.Length; i++)
@@ -21,104 +32,110 @@ namespace Predator.CoreEngine.Game
                 board.putComponentInBoard(tigers[i], tigerPositions[i]);
             }   
         }
-       
-        public void inGame()
+
+        public void NotifyGoatPlacement(int position)
         {
-            // Main Game Loop
-            while (true)
+            _pendingGoatPosition = position;
+            _goatPlacementWaiter.Release();
+        }
+
+        public void NotifyTigerMove(int from, int to)
+        {
+            _pendingTigerMove = (from, to);
+            _tigerMoveWaiter.Release();
+        }
+        private async Task HandleGoatTurn(CancellationToken ct)
+        {
+            if (avilableGoats > 0)
             {
+                LogMessage?.Invoke("Place a goat!");
+
+                // Wait for UI input
+                await _goatPlacementWaiter.WaitAsync(ct);
+
+                // Validate position
+                if (board.GetComponentPlacement()[_pendingGoatPosition] == null)
+                {
+                    Goat goat = new Goat(_pendingGoatPosition);
+                    goats[20 - avilableGoats] = goat;
+                    board.putComponentInBoard(goat, _pendingGoatPosition);
+                    avilableGoats--;
+                }
+            }
+            else
+            {
+                // TODO: Implement goat movement logic
+            }
+        }
+
+        private async Task HandleTigerTurn(CancellationToken ct)
+        {
+            LogMessage?.Invoke("Tiger's turn!");
+
+            // Wait for UI input
+            await _tigerMoveWaiter.WaitAsync(ct);
+
+            var (from, to) = _pendingTigerMove;
+            Tiger tiger = tigers.FirstOrDefault(t => t.position == from);
+
+            if (tiger != null && board.moveValidation(tiger, to,from))
+            {
+                // Update tiger position
+                tiger.position = to;
+                board.putComponentInBoard(tiger, to);
+                board.removeComponentFromBoard(from);
+
+                // Check for goat capture (if jumping over a node)
+                if (!board.getGraph().HasEdge(from, to))
+                {
+                    int capturedGoatPos = (from + to) / 2;
+                    board.removeComponentFromBoard(capturedGoatPos);
+                }
+            }
+        }
+
+        public async void inGame(CancellationToken cancellationToken)
+        {
+            LogMessage?.Invoke("Stared the game loop!");
+            int loopCount = 0;
+
+            try { 
+            // Main Game Loop
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                loopCount++;
+                LogMessage?.Invoke($"Game loop iteration#{loopCount}");
+                LogMessage?.Invoke($"Current turn: {(turn ? "Tiger" : "Goat")}");
+
                 if (turn)
                 {
-                    if (avilableGoats != 0)
-                    {
-                        int pos = 0;
-                        // Add goat
-                        do
-                        {
-                            Console.WriteLine("Enter postion of goat: ");
-                            string input = Console.ReadLine();
-                            int.TryParse(input, out pos);
-
-                            if (board.GetComponentPlacement()[pos] != null)
-                            {
-                                Console.WriteLine("Invalid Placement!");
-                                pos = 0;
-                            }
-                        } while (pos == 0);
-
-                        Goat goat = new Goat(pos);
-                        goats[20 - avilableGoats] = goat;
-                        board.putComponentInBoard(goat, pos);
-                        avilableGoats -= 1;
-                    }
-                    else
-                    {
-                        // Move goat
-
-                    }
+                    await HandleTigerTurn(cancellationToken);
                 }
                 else
                 {
-                    bool flag = true;
-                    int currentPos = 0;
-                    int newPos = 0;
-
-                    do
-                    {
-                        Console.WriteLine("Enter the current position of the tiger: ");
-                        string currentPosInput = Console.ReadLine();
-                        Console.WriteLine("Enter the new position of the tiger: ");
-                        string newPosInput = Console.ReadLine();
-                        if (int.TryParse(currentPosInput, out currentPos) && int.TryParse(newPosInput, out newPos))
-                        {
-                            var tigerMov = (currentPos, newPos);
-                            // Deconstruct the tuple
-                            (int from, int to) = tigerMov;
-
-                            foreach (Tiger t in tigers)
-                            {
-                                if (t.position == currentPos)
-                                {
-                                    if (!board.moveValidation(tigers[0], to, from))
-                                    {
-                                        Console.WriteLine("Invalid move for tiger! ");
-                                    }
-                                    else
-                                    {
-                                        flag = !flag;
-                                    }
-
-                                }
-                            }
-
-                        }
-                    } while (flag);
-
-                    foreach (Tiger t in tigers)
-                    {
-                        if (t.position == currentPos)
-                        {
-                            t.position = newPos;
-                            // If there was a goat in between, remove it! 
-                            //if((currentPos+newPos)/2)
-                            if (!board.getGraph().HasEdge(currentPos, newPos))
-                            {
-                                goats[(currentPos + newPos) / 2] = null;
-                                board.removeComponentFromBoard((currentPos + newPos) / 2);
-                            }
-
-                            board.putComponentInBoard(t, newPos);
-                            board.removeComponentFromBoard(currentPos);
-                            break;
-                        }
-                    }
+                    await HandleGoatTurn(cancellationToken);
                 }
 
-                // Print board
                 turn = !turn;
-                board.PrintBoard();
-                //board.getGraph().traverse(1,4);
+                GameStateChanged?.Invoke();
+
+                // Add a small delay (non-blocking)
+                await Task.Delay(500, cancellationToken);
             }
+            }
+            catch (OperationCanceledException)
+            {
+                LogMessage?.Invoke("Game loop was cancelled.");
+            }
+            catch (Exception ex)
+            {
+                LogMessage?.Invoke($"Error in game loop: {ex.Message}");
+            }
+            finally
+            {
+                LogMessage?.Invoke("Game loop exited.");
+            }
+
         }
 
         public bool GetTurn()
