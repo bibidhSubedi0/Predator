@@ -21,6 +21,10 @@ namespace UIPredator
         {
             InitializeComponent();
             _core = new CoreControllers();
+
+            // Subscribe to the UupdateUI when instanciating the window
+            // Subscribing = adding the UpdateUI methid to the list of methods that will be called when the event is raised
+            // Note that this is not invoking the UpdateUI. can be unsubscibed using -=
             _core.GameStateUpdated += UpdateUI;
 
             // Use only the method handler
@@ -29,12 +33,16 @@ namespace UIPredator
             _core.GameStatusChanged += UpdateGameStatus;
             DrawBoard();
         }
+
+        // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
             try
             {
                 button.IsEnabled = false;
+
+                // This starts the game loop and control is tranferd back here when the game ends completely!
                 await _core.StartGameAsync();
             }
             finally
@@ -96,9 +104,6 @@ namespace UIPredator
         {
             _core.StopGame();
         }
-
-
-
 
         private void DrawBoard()
         {

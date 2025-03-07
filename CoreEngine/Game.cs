@@ -12,9 +12,10 @@ namespace Predator.CoreEngine.Game
         public bool turn = true;
         public int avilableGoats = 20;
         public Goat[] goats = new Goat[20];
-        
+
 
         // Async Input Handling
+        // initializes a SemaphoreSlim with an initial count of 0, meaning no threads can semaphore
         private SemaphoreSlim _goatPlacementWaiter = new SemaphoreSlim(0);
         private SemaphoreSlim _tigerMoveWaiter = new SemaphoreSlim(0);
         private int _pendingGoatPosition;
@@ -41,8 +42,10 @@ namespace Predator.CoreEngine.Game
 
         public void NotifyTigerMove(int from, int to)
         {
+            LogMessage?.Invoke("Notifying Tiger move...");
             _pendingTigerMove = (from, to);
             _tigerMoveWaiter.Release();
+            LogMessage?.Invoke("Tiger move notified.");
         }
         private async Task HandleGoatTurn(CancellationToken ct)
         {
@@ -73,8 +76,29 @@ namespace Predator.CoreEngine.Game
             LogMessage?.Invoke("Tiger's turn!");
 
             // Wait for UI input
+            // WaitAsync is an asynchronous method that blocks the calling thread until the semaphore’s count is greater than 0.
+            // And the seamphore's count will be greater then 0 when it is rleased from some other thread somewhere
+            // Which in our case is from "NotifyTigerMove"
+            // So basicallt from whereever the "NotifyTigerMove" happens, only then this step will proceede
+            try { 
+            LogMessage?.Invoke("Waiting for Tiger move...");
             await _tigerMoveWaiter.WaitAsync(ct);
+            LogMessage?.Invoke("Tiger move received.");
+            }
+            catch (OperationCanceledException)
+            {
+                LogMessage?.Invoke("Tiger turn was cancelled.");
+                throw; // Re-throw to exit the game loop
+            }
+            catch (Exception ex)
+            {
+                LogMessage?.Invoke($"Error in HandleTigerTurn: {ex.Message}");
+                LogMessage?.Invoke($"Stack Trace: {ex.StackTrace}");
+                throw; // Re-throw to exit the game loop
+            }
 
+            // Process Tiger's move
+            LogMessage?.Invoke("Processing Tiger move...");
             var (from, to) = _pendingTigerMove;
             Tiger tiger = tigers.FirstOrDefault(t => t.position == from);
 
@@ -94,7 +118,8 @@ namespace Predator.CoreEngine.Game
             }
         }
 
-        public async void inGame(CancellationToken cancellationToken)
+        // Runs the main loop and uses the SemaphoreSlim to wait for user input
+        public async Task inGame(CancellationToken cancellationToken)
         {
             LogMessage?.Invoke("Stared the game loop!");
             int loopCount = 0;
@@ -110,17 +135,20 @@ namespace Predator.CoreEngine.Game
                 if (turn)
                 {
                     await HandleTigerTurn(cancellationToken);
-                }
+                    LogMessage?.Invoke("Lord let me see sum");
+                    }
                 else
                 {
                     await HandleGoatTurn(cancellationToken);
                 }
 
+                LogMessage?.Invoke("FUck this shit");
+
                 turn = !turn;
                 GameStateChanged?.Invoke();
 
                 // Add a small delay (non-blocking)
-                await Task.Delay(500, cancellationToken);
+                //await Task.Delay(2000, cancellationToken);
             }
             }
             catch (OperationCanceledException)
@@ -135,6 +163,8 @@ namespace Predator.CoreEngine.Game
             {
                 LogMessage?.Invoke("Game loop exited.");
             }
+
+            LogMessage?.Invoke("Lord let me see sum");
 
         }
 
