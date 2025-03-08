@@ -8,6 +8,7 @@ namespace Predator.GameApp
     {
         private Game _game;
 
+
         // Provides a mechanism for cancelling async operations
         private CancellationTokenSource _cts;
 
@@ -15,16 +16,17 @@ namespace Predator.GameApp
         // These are bascilly the function pointers equivalent to c++
 
 
-        // Events
-
+        
         // It notiesfies the UI when the state of the game is changed
         public event Action<string> GameStatusChanged;
 
         // It notifies the UI wen an event is logged
         public event Action<string> GameEventLogged;
 
+        // Notifies the UI when something changes in game, like placement or something
         public event Action GameStateUpdated;
 
+        // Event to LogMessage into UI
         public event Action<string> LogMessage;
 
         public CoreControllers()
@@ -117,7 +119,23 @@ namespace Predator.GameApp
             LogMessage?.Invoke($"Attempting to place goat at {position}");
             _game.NotifyGoatPlacement(position);
         }
-        public void MoveTiger(int from, int to) => _game.NotifyTigerMove(from, to);
+        public async void MoveTiger(int from, int to){
+            _game.NotifyTigerMove(from, to);
+            // It diretly goes to update the UI from here
+            // The tiger has not moved yet as UpdateUI is closer from here
+            // So need to wait for move to be completed!
+
+            // Waiting for tiger to complete moving
+
+
+
+
+            //LogMessage?.Invoke("Waitinggggggggggggggggggggg");
+            //await _game.tigerPlacementCompletionWaiter.WaitAsync();
+            //// Lol this does not work because control is passed to UI without executing this remaning blocl!
+            //LogMessage?.Invoke("Done! Waitinggggggggggggggggggggg");
+        }
+        
 
 
 

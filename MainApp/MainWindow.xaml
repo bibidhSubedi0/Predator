@@ -10,12 +10,13 @@
         <!-- Add these elements inside your main layout panel -->
         <StackPanel>
             <Button x:Name="StartButton" Content="Start Game" Click="StartGameButtonClick"/>
-             <TextBox x:Name="LogTextBox" 
-             Height="250"
-             IsReadOnly="True" 
-             VerticalScrollBarVisibility="Auto"
-             Margin="5"/>
+            <Button x:Name="GoatMoveSay" Content="GoatMoveSay" Click="BoardPosition_Click"/>
+
         </StackPanel>
+        <TextBox x:Name="LogTextBox"
+         IsReadOnly="True"
+         VerticalScrollBarVisibility="Auto"
+         Width="152" RenderTransformOrigin="0.829,2.563" Margin="448,313,0,10"/>
     </Grid>
 
 </Window>

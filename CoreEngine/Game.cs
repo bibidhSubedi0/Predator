@@ -25,6 +25,13 @@ namespace Predator.CoreEngine.Game
         public event Action<string> LogMessage;  // For debugging/logging
 
 
+        // These semaphore are required for move completion to proceede to UI change
+        //public SemaphoreSlim tigerPlacementCompletionWaiter = new SemaphoreSlim(0);
+        // Lol does not work
+
+        // Try using event
+
+        
         public Game()
         {
             for (int i = 0; i < tigers.Length; i++)
@@ -55,6 +62,8 @@ namespace Predator.CoreEngine.Game
 
                 // Wait for UI input
                 await _goatPlacementWaiter.WaitAsync(ct);
+
+                LogMessage?.Invoke("Goat Placed!");
 
                 // Validate position
                 if (board.GetComponentPlacement()[_pendingGoatPosition] == null)
@@ -109,6 +118,10 @@ namespace Predator.CoreEngine.Game
                 board.putComponentInBoard(tiger, to);
                 board.removeComponentFromBoard(from);
 
+                LogMessage?.Invoke($"TIGER MOVED{tiger.position}");
+
+               
+
                 // Check for goat capture (if jumping over a node)
                 if (!board.getGraph().HasEdge(from, to))
                 {
@@ -116,6 +129,11 @@ namespace Predator.CoreEngine.Game
                     board.removeComponentFromBoard(capturedGoatPos);
                 }
             }
+
+            // Now the tiger's turn is over, all the work is done
+            // Now only rlease the control back to the MoveTiger() function
+            //tigerPlacementCompletionWaiter.Release();
+
         }
 
         // Runs the main loop and uses the SemaphoreSlim to wait for user input
@@ -132,7 +150,7 @@ namespace Predator.CoreEngine.Game
                 LogMessage?.Invoke($"Game loop iteration#{loopCount}");
                 LogMessage?.Invoke($"Current turn: {(turn ? "Tiger" : "Goat")}");
 
-                if (turn)
+                if (turn) // turn true = tiger's turn
                 {
                     await HandleTigerTurn(cancellationToken);
                     LogMessage?.Invoke("Lord let me see sum");
@@ -145,6 +163,8 @@ namespace Predator.CoreEngine.Game
                 LogMessage?.Invoke("FUck this shit");
 
                 turn = !turn;
+
+                // NOW THE BOARD HAS CHANGED -> MAKE UI RERENDER THE WHOLE BOARD AGAIN
                 GameStateChanged?.Invoke();
 
                 // Add a small delay (non-blocking)
