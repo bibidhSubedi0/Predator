@@ -45,7 +45,8 @@ jobs:
       if: github.ref == 'refs/heads/master'
       with:
         files: |
-          MainApp/published/**/*.exe
-          MainApp/published/**/*.dll
+          MainApp/published/*.exe          
+          MainApp/published/*.dll           
+          MainApp/published/*.runtimeconfig.json 
         tag_name: build-${{ github.run_number }}
         body: Automated game build - ${{ github.sha }}
