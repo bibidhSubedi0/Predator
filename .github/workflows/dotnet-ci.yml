@@ -37,8 +37,9 @@ jobs:
     - name: Publish Artifacts
       run: |
         mkdir artifacts
-        xcopy /s /y "CoreEngine\bin\Release" "artifacts\CoreEngine"
-        xcopy /s /y "MainApp\bin\Release" "artifacts\MainApp"
+        Copy-Item -Path "CoreEngine\bin\Release\*" -Destination "artifacts\CoreEngine" -Recurse -Force
+        Copy-Item -Path "MainApp\bin\Release\*" -Destination "artifacts\MainApp" -Recurse -Force
+      shell: pwsh  # Force PowerShell Core (avoids cmd prompts)
         
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
