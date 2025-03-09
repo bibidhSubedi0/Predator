@@ -20,6 +20,7 @@ namespace UIPredator
 
         private Dictionary<int, (double X, double Y)> NodePositions = new Dictionary<int, (double, double)>();
         int _selectedTigerPosition = -1;
+        int _selectedGoatPosition = -1;
 
         public MainWindow()
         {
@@ -99,27 +100,35 @@ namespace UIPredator
             int gridY = (int)(clickPosition.Y / CellSize);
             int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
 
-            LogMessageHandler(gridX.ToString() + gridY.ToString());
-            LogMessageHandler(boardPosition.ToString());
-
 
             // Call game logic based on the current turn
             if (!_core.GetTurn()) // Goat's turn
             {
-                LogMessageHandler("Goat Placed At:  : " + boardPosition.ToString());
-                _core.PlaceGoat(boardPosition);
+                if(_core.GetAvailableGoats() >0)
+                {
+                    _core.PlaceGoat(boardPosition);
+                    
+                }
+                else if(_selectedGoatPosition ==-1)
+                {
+                    _selectedGoatPosition = boardPosition;
+                    LogMessageHandler("Selected goat positon "+_selectedGoatPosition.ToString());
+                }
+                else
+                {
+                    _core.MoveGoat(_selectedGoatPosition, boardPosition);
+                    _selectedGoatPosition = -1;
+                }
             }
             else // Tiger's turn
             {
                 // For tiger movement, track "from" and "to" positions
                 if (_selectedTigerPosition == -1)
                 {
-                    LogMessageHandler("Tiger selected : " + boardPosition.ToString());
                     _selectedTigerPosition = boardPosition; // First click: select tiger
                 }
                 else
                 {
-                    LogMessageHandler("Second Click : Tiger Moved : " + boardPosition.ToString());
                     _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
                     _selectedTigerPosition = -1; // Reset selection
                 }
@@ -217,7 +226,6 @@ namespace UIPredator
 
             foreach(var t in NewTigersInfo)
             {
-                LogMessageHandler(t.position.ToString());
                 (double X,double Y) pos = NodePositions[t.position];
                 DrawCircle(pos.X, pos.Y, Brushes.Red, 10);
             }
@@ -227,7 +235,6 @@ namespace UIPredator
             {
                 if (g!=null)
                 {
-                    LogMessageHandler(g.position.ToString());
                     (double X, double Y) pos = NodePositions[g.position];
                     DrawCircle(pos.X, pos.Y, Brushes.Blue, 8);
                 }

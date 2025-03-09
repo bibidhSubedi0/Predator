@@ -17,9 +17,11 @@ namespace Predator.CoreEngine.Game
         // Async Input Handling
         // initializes a SemaphoreSlim with an initial count of 0, meaning no threads can semaphore
         private SemaphoreSlim _goatPlacementWaiter = new SemaphoreSlim(0);
+        private SemaphoreSlim _goatMovementWaiter = new SemaphoreSlim(0);
         private SemaphoreSlim _tigerMoveWaiter = new SemaphoreSlim(0);
         private int _pendingGoatPosition;
         private (int from, int to) _pendingTigerMove;
+        private (int from, int to) _pendingGoatMove;
 
         public event Action GameStateChanged;
         public event Action<string> LogMessage;  // For debugging/logging
@@ -51,13 +53,16 @@ namespace Predator.CoreEngine.Game
             _goatPlacementWaiter.Release();
         }
 
+        public void NotifyGoatMove(int from, int to)
+        {
+            _pendingGoatMove = (from, to);
+            _goatMovementWaiter.Release();
+        }
+
         public void NotifyTigerMove(int from, int to)
         {
-            //Tiger tiger = tigers.FirstOrDefault(t => t.Position == from);
-            LogMessage?.Invoke("Notifying Tiger move...");
             _pendingTigerMove = (from, to);
             _tigerMoveWaiter.Release();
-            LogMessage?.Invoke("Tiger move notified.");
         }
         private async Task HandleGoatTurn(CancellationToken ct)
         {
@@ -68,8 +73,6 @@ namespace Predator.CoreEngine.Game
                 // Wait for UI input
                 await _goatPlacementWaiter.WaitAsync(ct);
 
-                LogMessage?.Invoke("Goat Placed!");
-
                 // Validate position
                 if (board.GetComponentPlacement()[_pendingGoatPosition] == null)
                 {
@@ -78,10 +81,31 @@ namespace Predator.CoreEngine.Game
                     board.putComponentInBoard(goat, _pendingGoatPosition);
                     avilableGoats--;
                 }
+
+                LogMessage?.Invoke("Goat Placed!");
+
             }
             else
             {
                 // TODO: Implement goat movement logic
+                LogMessage?.Invoke("Move a goat!");
+
+                // Wait for UI input
+                await _goatMovementWaiter.WaitAsync(ct);
+
+                var (from, to) = _pendingGoatMove;
+                Goat goat = goats.FirstOrDefault(g => g.position == from);
+
+                if (goat != null && board.moveValidation(goat, to, from))
+                {
+                    // Update tiger position
+                    goat.position = to;
+                    board.putComponentInBoard(goat, to);
+                    board.removeComponentFromBoard(from);
+
+                    LogMessage?.Invoke($"GOAT MOVED{goat.position}");
+                }
+
             }
         }
 
@@ -95,9 +119,7 @@ namespace Predator.CoreEngine.Game
             // Which in our case is from "NotifyTigerMove"
             // So basicallt from whereever the "NotifyTigerMove" happens, only then this step will proceede
             try { 
-            LogMessage?.Invoke("Waiting for Tiger move...");
             await _tigerMoveWaiter.WaitAsync(ct);
-            LogMessage?.Invoke("Tiger move received.");
             }
             catch (OperationCanceledException)
             {
@@ -112,7 +134,6 @@ namespace Predator.CoreEngine.Game
             }
 
             // Process Tiger's move
-            LogMessage?.Invoke("Processing Tiger move...");
             var (from, to) = _pendingTigerMove;
             Tiger tiger = tigers.FirstOrDefault(t => t.position == from);
 
@@ -149,10 +170,6 @@ namespace Predator.CoreEngine.Game
 
                 }
             }
-
-            // Now the tiger's turn is over, all the work is done
-            // Now only rlease the control back to the MoveTiger() function
-            //tigerPlacementCompletionWaiter.Release();
 
         }
 

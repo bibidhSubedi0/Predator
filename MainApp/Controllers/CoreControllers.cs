@@ -119,6 +119,12 @@ namespace Predator.GameApp
             LogMessage?.Invoke($"Attempting to place goat at {position}");
             _game.NotifyGoatPlacement(position);
         }
+
+        public void MoveGoat(int from, int to)
+        {
+            _game.NotifyGoatMove(from, to);
+            //_game.NotifyGoatPlacement()
+        }
         public async void MoveTiger(int from, int to){
             _game.NotifyTigerMove(from, to);
             // It diretly goes to update the UI from here
