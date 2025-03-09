@@ -41,7 +41,7 @@ jobs:
         xcopy /s /y "MainApp\bin\Release" "artifacts\MainApp"
         
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: predator-build
         path: artifacts/
