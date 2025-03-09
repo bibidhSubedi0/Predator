@@ -12,7 +12,7 @@ namespace Predator.CoreEngine.Game
         public bool turn = true;
         public int avilableGoats = 20;
         public Goat[] goats = new Goat[20];
-        
+        public bool GameOn = false;
 
         // Async Input Handling
         // initializes a SemaphoreSlim with an initial count of 0, meaning no threads can semaphore
@@ -81,9 +81,6 @@ namespace Predator.CoreEngine.Game
                     board.putComponentInBoard(goat, _pendingGoatPosition);
                     avilableGoats--;
                 }
-
-                LogMessage?.Invoke("Goat Placed!");
-
             }
             else
             {
@@ -102,8 +99,6 @@ namespace Predator.CoreEngine.Game
                     goat.position = to;
                     board.putComponentInBoard(goat, to);
                     board.removeComponentFromBoard(from);
-
-                    LogMessage?.Invoke($"GOAT MOVED{goat.position}");
                 }
 
             }
@@ -111,7 +106,7 @@ namespace Predator.CoreEngine.Game
 
         private async Task HandleTigerTurn(CancellationToken ct)
         {
-            LogMessage?.Invoke("Tiger's turn!");
+            LogMessage?.Invoke("Move a tiger!");
 
             // Wait for UI input
             // WaitAsync is an asynchronous method that blocks the calling thread until the semaphore’s count is greater than 0.
@@ -144,15 +139,12 @@ namespace Predator.CoreEngine.Game
                 board.putComponentInBoard(tiger, to);
                 board.removeComponentFromBoard(from);
 
-                LogMessage?.Invoke($"TIGER MOVED{tiger.position}");
-
                
 
                 // Check for goat capture (if jumping over a node)
                 if (!board.getGraph().HasEdge(from, to))
                 {
                     int capturedGoatPos = (from + to) / 2;
-                    LogMessage?.Invoke("Goat removed at : " + capturedGoatPos.ToString());
                     // Check for this goat and remove it from array as well!
                     for(int i = 0; i < goats.Length; i++)
                     {
@@ -177,27 +169,23 @@ namespace Predator.CoreEngine.Game
         public async Task inGame(CancellationToken cancellationToken)
         {
             LogMessage?.Invoke("Stared the game loop!");
-            int loopCount = 0;
-
+            GameOn = true;
+            
             try { 
             // Main Game Loop
             while (!cancellationToken.IsCancellationRequested)
             {
-                loopCount++;
-                LogMessage?.Invoke($"Game loop iteration#{loopCount}");
                 LogMessage?.Invoke($"Current turn: {(turn ? "Tiger" : "Goat")}");
 
                 if (turn) // turn true = tiger's turn
                 {
                     await HandleTigerTurn(cancellationToken);
-                    LogMessage?.Invoke("Lord let me see sum");
                     }
                 else
                 {
                     await HandleGoatTurn(cancellationToken);
                 }
 
-                LogMessage?.Invoke("FUck this shit");
 
                 turn = !turn;
 
@@ -251,6 +239,10 @@ namespace Predator.CoreEngine.Game
             return avilableGoats;
         }
 
+        public bool GetGameStatus()
+        {
+            return GameOn;
+        }
         
     }
 

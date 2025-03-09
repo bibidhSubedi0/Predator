@@ -116,7 +116,6 @@ namespace Predator.GameApp
         // UI Input Forwarding
         public void PlaceGoat(int position)
         {
-            LogMessage?.Invoke($"Attempting to place goat at {position}");
             _game.NotifyGoatPlacement(position);
         }
 
@@ -175,6 +174,11 @@ namespace Predator.GameApp
         public bool GetTurn()
         {
             return _game.GetTurn();
+        }
+
+        public bool GetGameStatus()
+        {
+            return _game.GetGameStatus();
         }
     }
 }

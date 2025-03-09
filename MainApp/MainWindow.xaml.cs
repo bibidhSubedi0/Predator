@@ -91,6 +91,11 @@ namespace UIPredator
 
         private void BoardCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if(!_core.GetGameStatus())
+            {
+                return;
+            }
+
             // Get the mouse click position relative to the board canvas
             Point clickPosition = e.GetPosition(BoardCanvas);
 
@@ -122,7 +127,6 @@ namespace UIPredator
             }
             else // Tiger's turn
             {
-                // For tiger movement, track "from" and "to" positions
                 if (_selectedTigerPosition == -1)
                 {
                     _selectedTigerPosition = boardPosition; // First click: select tiger
@@ -148,6 +152,14 @@ namespace UIPredator
 
         private void DrawBoard()
         {
+            var background = new Rectangle
+            {
+                Width = BoardCanvas.ActualWidth,
+                Height = BoardCanvas.ActualHeight,
+                Fill = new SolidColorBrush(Color.FromRgb(59, 66, 82))
+            };
+            BoardCanvas.Children.Add(background);
+
             for (int i = 0; i < GridSize; i++)
             {
                 for (int j = 0; j < GridSize; j++)
@@ -168,6 +180,7 @@ namespace UIPredator
                     // Removed the diagonal lines in each cell
                 }
             }
+
 
             // L-R main diagonal (1-7-13-19-25)
             DrawEdge(0, 0, 1, 1);
@@ -218,15 +231,14 @@ namespace UIPredator
 
         private void DrawComponents()
         {
-            //BoardCanvas.Children.Clear();
             Board NewBoardInfo = _core.GetBoardState();
             Tiger[] NewTigersInfo = _core.GetTigers();
             Goat[] NewGoatInfo = _core.GetGoats();
             int NewAvilableGoats = _core.GetAvailableGoats();
 
-            foreach(var t in NewTigersInfo)
+            foreach(var component in NewTigersInfo)
             {
-                (double X,double Y) pos = NodePositions[t.position];
+                (double X, double Y) pos = NodePositions[component.position];
                 DrawCircle(pos.X, pos.Y, Brushes.Red, 10);
             }
 
