@@ -19,6 +19,7 @@ namespace UIPredator
         private CoreControllers _core;
 
         private Dictionary<int, (double X, double Y)> NodePositions = new Dictionary<int, (double, double)>();
+        int _selectedTigerPosition = -1;
 
         public MainWindow()
         {
@@ -38,6 +39,7 @@ namespace UIPredator
             // ------------------------------------------------
             _core.GameStatusChanged += UpdateGameStatus;
 
+            
             UpdateUI();
         }
 
@@ -86,6 +88,48 @@ namespace UIPredator
             });
         }
 
+        private void BoardCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Get the mouse click position relative to the board canvas
+            Point clickPosition = e.GetPosition(BoardCanvas);
+
+            
+            // Map the coordinates to your game's grid position
+            int gridX = (int)(clickPosition.X / CellSize);
+            int gridY = (int)(clickPosition.Y / CellSize);
+            int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
+
+            LogMessageHandler(gridX.ToString() + gridY.ToString());
+            LogMessageHandler(boardPosition.ToString());
+
+
+            // Call game logic based on the current turn
+            if (!_core.GetTurn()) // Goat's turn
+            {
+                _core.PlaceGoat(boardPosition);
+            }
+            else // Tiger's turn
+            {
+                // For tiger movement, track "from" and "to" positions
+                if (_selectedTigerPosition == -1)
+                {
+                    LogMessageHandler("Tiger selected : " + boardPosition.ToString());
+                    _selectedTigerPosition = boardPosition; // First click: select tiger
+                }
+                else
+                {
+                    _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
+                    _selectedTigerPosition = -1; // Reset selection
+                }
+            }
+        }
+
+        // Convert grid (x,y) to board's position index (e.g., 0-24 for 5x5)
+        private int ConvertGridToBoardPosition(int x, int y)
+        {
+            return (y * GridSize + x) +1;
+        }
+
         // This fucntion is taking the user input from UI -> Just a button for now -> and moving the tiger/goat according to the input
         private void BoardPosition_Click(object sender, RoutedEventArgs e)
         {
@@ -95,12 +139,11 @@ namespace UIPredator
             // This is working perfectly fine!
             if (!_core.GetTurn()) // Goat's turn
             {
-
                 _core.PlaceGoat(position);
             }
             else // Tiger's turn
             {
-                _core.MoveTiger(1, 6);
+                _core.MoveTiger(5, 9);
             }
         }
 
@@ -194,14 +237,16 @@ namespace UIPredator
                 DrawCircle(pos.X, pos.Y, Brushes.Red, 10);
             }
 
-            //foreach (var g in NewGoatInfo)
-            //{
-            //    if(g.position !=0)
-            //    {
-            //        (double X, double Y) pos = NodePositions[g.position];
-            //        DrawCircle(pos.X, pos.Y, Brushes.Red, 10);
-            //    }
-            //}
+
+            foreach (var g in NewGoatInfo)
+            {
+                if (g!=null)
+                {
+                    LogMessageHandler(g.position.ToString());
+                    (double X, double Y) pos = NodePositions[g.position];
+                    DrawCircle(pos.X, pos.Y, Brushes.Blue, 8);
+                }
+            }
         }
 
         private void DrawCircle( double x, double y, Brush color, int radius)

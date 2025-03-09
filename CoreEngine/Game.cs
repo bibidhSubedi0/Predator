@@ -12,7 +12,7 @@ namespace Predator.CoreEngine.Game
         public bool turn = true;
         public int avilableGoats = 20;
         public Goat[] goats = new Goat[20];
-
+        
 
         // Async Input Handling
         // initializes a SemaphoreSlim with an initial count of 0, meaning no threads can semaphore
@@ -38,7 +38,11 @@ namespace Predator.CoreEngine.Game
             {
                 tigers[i] = new Tiger(tigerPositions[i]);
                 board.putComponentInBoard(tigers[i], tigerPositions[i]);
-            }   
+            } 
+            //for(int i = 0; i < 20; i++)
+            //{
+            //    goats[i] = new Goat(i);
+            //}
         }
 
         public void NotifyGoatPlacement(int position)
@@ -49,6 +53,7 @@ namespace Predator.CoreEngine.Game
 
         public void NotifyTigerMove(int from, int to)
         {
+            //Tiger tiger = tigers.FirstOrDefault(t => t.Position == from);
             LogMessage?.Invoke("Notifying Tiger move...");
             _pendingTigerMove = (from, to);
             _tigerMoveWaiter.Release();
@@ -214,7 +219,7 @@ namespace Predator.CoreEngine.Game
             return avilableGoats;
         }
 
-
+        
     }
 
 }
