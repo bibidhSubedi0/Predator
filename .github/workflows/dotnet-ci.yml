@@ -1,0 +1,47 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest  # Required for WPF projects
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8 SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    # Build Core Engine
+    - name: Build CoreEngine
+      working-directory: ./CoreEngine
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+
+    # Build WPF App
+    - name: Build MainApp
+      working-directory: ./MainApp
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+
+    # Create build artifact
+    - name: Publish Artifacts
+      run: |
+        mkdir artifacts
+        xcopy /s /y "CoreEngine\bin\Release" "artifacts\CoreEngine"
+        xcopy /s /y "MainApp\bin\Release" "artifacts\MainApp"
+        
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: predator-build
+        path: artifacts/
