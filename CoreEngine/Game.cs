@@ -38,11 +38,11 @@ namespace Predator.CoreEngine.Game
             {
                 tigers[i] = new Tiger(tigerPositions[i]);
                 board.putComponentInBoard(tigers[i], tigerPositions[i]);
-            } 
-            //for(int i = 0; i < 20; i++)
-            //{
-            //    goats[i] = new Goat(i);
-            //}
+            }
+            for (int i = 0; i < 20; i++)
+            {
+                goats[i] = null;
+            }
         }
 
         public void NotifyGoatPlacement(int position)
@@ -131,7 +131,22 @@ namespace Predator.CoreEngine.Game
                 if (!board.getGraph().HasEdge(from, to))
                 {
                     int capturedGoatPos = (from + to) / 2;
+                    LogMessage?.Invoke("Goat removed at : " + capturedGoatPos.ToString());
+                    // Check for this goat and remove it from array as well!
+                    for(int i = 0; i < goats.Length; i++)
+                    {
+                        if (goats[i]!=null)
+                        {
+                            if (goats[i].position == capturedGoatPos)
+                            {
+
+                                goats[i] = null;
+                                break;
+                            }
+                        }
+                    }
                     board.removeComponentFromBoard(capturedGoatPos);
+
                 }
             }
 

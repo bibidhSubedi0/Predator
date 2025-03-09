@@ -106,6 +106,7 @@ namespace UIPredator
             // Call game logic based on the current turn
             if (!_core.GetTurn()) // Goat's turn
             {
+                LogMessageHandler("Goat Placed At:  : " + boardPosition.ToString());
                 _core.PlaceGoat(boardPosition);
             }
             else // Tiger's turn
@@ -118,6 +119,7 @@ namespace UIPredator
                 }
                 else
                 {
+                    LogMessageHandler("Second Click : Tiger Moved : " + boardPosition.ToString());
                     _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
                     _selectedTigerPosition = -1; // Reset selection
                 }
@@ -128,23 +130,6 @@ namespace UIPredator
         private int ConvertGridToBoardPosition(int x, int y)
         {
             return (y * GridSize + x) +1;
-        }
-
-        // This fucntion is taking the user input from UI -> Just a button for now -> and moving the tiger/goat according to the input
-        private void BoardPosition_Click(object sender, RoutedEventArgs e)
-        {
-            var button = (Button)sender;
-            int position = 12;
-
-            // This is working perfectly fine!
-            if (!_core.GetTurn()) // Goat's turn
-            {
-                _core.PlaceGoat(position);
-            }
-            else // Tiger's turn
-            {
-                _core.MoveTiger(5, 9);
-            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
