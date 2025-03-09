@@ -35,19 +35,23 @@ jobs:
           -o published/ `
           -p:IncludeAllContentForSelfExtract=false
 
-    - name: Cleanup Resource DLLs
+    - name: Cleanup Unnecessary Files
       working-directory: ./MainApp/published
       shell: pwsh
-      run: Remove-Item -Path "*resources.dll" -ErrorAction SilentlyContinue
+      run: |
+        Remove-Item -Path "*resources.dll" -ErrorAction SilentlyContinue  # Delete localization files
+        Remove-Item -Path "*.pdb" -ErrorAction SilentlyContinue         # Delete debug symbols
+
+    - name: Zip Published Files
+      shell: pwsh
+      run: |
+        Compress-Archive -Path "MainApp/published/*" -DestinationPath "game-build.zip"
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'
       with:
-        files: |
-          MainApp/published/*.exe
-          MainApp/published/*.dll
-          MainApp/published/*.runtimeconfig.json
+        files: game-build.zip  # Upload a single ZIP file
         tag_name: build-${{ github.run_number }}
         body: |
           Automated game build 🚀
