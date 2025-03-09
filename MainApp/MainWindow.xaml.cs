@@ -9,6 +9,7 @@ using Predator.GameApp;
 using Predator.CoreEngine.Players;
 using System.ComponentModel;
 using Predator.CoreEngine.graphedBoard;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace UIPredator
 {
@@ -47,17 +48,22 @@ namespace UIPredator
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
-            var button = (Button)sender;
             try
             {
-                button.IsEnabled = false;
+                StartButton.IsEnabled = false;
 
-                // This starts the game loop and control is tranferd back here when the game ends completely!
+                StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A"); 
+                StatusText.Text = "Status: In Progress";
+                StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
+
                 await _core.StartGameAsync();
             }
             finally
             {
-                button.IsEnabled = true;
+                StartButton.IsEnabled = true;
+                StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
+                StatusText.Text = "Status: Not Started";
+                StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
             }
         }
 

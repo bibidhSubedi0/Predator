@@ -31,6 +31,9 @@
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#5E81AC"/>
                 </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#4C566A"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
 
@@ -70,19 +73,21 @@
                         Content="Start New Game"
                         Click="StartGameButtonClick"
                         Background="#5E81AC"
-                        Margin="0 0 0 20"/>
+                        Padding="10"
+                        Margin="0 0 0 20" Height="29"/>
 
                 <!-- Status Indicator -->
-                <Border Background="#3B4252" 
-                        CornerRadius="5"
-                        Padding="10"
-                        Margin="0 0 0 20">
-                    <TextBlock x:Name="StatusText"
-                               Text="Status: Not Started"
-                               Foreground="#88C0D0"
-                               FontSize="14"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Center"/>
+                <Border x:Name="StatusBorder" 
+                    Background="#3B4252" 
+                    CornerRadius="5"
+                    Padding="10"
+                    Margin="0 0 0 20">  
+                <TextBlock x:Name="StatusText"
+                       Text="Status: Not Started"
+                       Foreground="#88C0D0"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
                 </Border>
 
                 <!-- Game Log -->
