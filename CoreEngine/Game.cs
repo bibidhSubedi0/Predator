@@ -27,13 +27,6 @@ namespace Predator.CoreEngine.Game
         public event Action<string> LogMessage;  // For debugging/logging
 
 
-        // These semaphore are required for move completion to proceede to UI change
-        //public SemaphoreSlim tigerPlacementCompletionWaiter = new SemaphoreSlim(0);
-        // Lol does not work
-
-        // Try using event
-
-        
         public Game()
         {
             for (int i = 0; i < tigers.Length; i++)

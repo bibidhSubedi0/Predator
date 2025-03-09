@@ -126,19 +126,6 @@ namespace Predator.GameApp
         }
         public async void MoveTiger(int from, int to){
             _game.NotifyTigerMove(from, to);
-            // It diretly goes to update the UI from here
-            // The tiger has not moved yet as UpdateUI is closer from here
-            // So need to wait for move to be completed!
-
-            // Waiting for tiger to complete moving
-
-
-
-
-            //LogMessage?.Invoke("Waitinggggggggggggggggggggg");
-            //await _game.tigerPlacementCompletionWaiter.WaitAsync();
-            //// Lol this does not work because control is passed to UI without executing this remaning blocl!
-            //LogMessage?.Invoke("Done! Waitinggggggggggggggggggggg");
         }
         
 
