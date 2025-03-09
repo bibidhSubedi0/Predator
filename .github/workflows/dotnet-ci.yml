@@ -1,4 +1,4 @@
-name: .NET CI
+name: .NET CI/CD
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # Required for WPF projects
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -19,30 +19,30 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # Build Core Engine
     - name: Build CoreEngine
       working-directory: ./CoreEngine
       run: |
         dotnet restore
         dotnet build --configuration Release
 
-    # Build WPF App
     - name: Build MainApp
       working-directory: ./MainApp
       run: |
         dotnet restore
         dotnet build --configuration Release
 
-    # Create build artifact
-    - name: Publish Artifacts
-      run: |
-        mkdir artifacts
-        Copy-Item -Path "CoreEngine\bin\Release\*" -Destination "artifacts\CoreEngine" -Recurse -Force
-        Copy-Item -Path "MainApp\bin\Release\*" -Destination "artifacts\MainApp" -Recurse -Force
-      shell: pwsh  # Force PowerShell Core (avoids cmd prompts)
-        
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
+    # NEW: Create portable EXE
+    - name: Publish Standalone Game
+      working-directory: ./MainApp
+      run: dotnet publish -c Release -r win-x64 --self-contained true -o published/
+
+    # NEW: Auto-release
+    - name: Upload to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      if: github.ref == 'refs/heads/master'
       with:
-        name: predator-build
-        path: artifacts/
+        files: |
+          MainApp/published/**/*.exe
+          MainApp/published/**/*.dll
+        tag_name: latest
+        body: Automated game build - ${{ github.sha }}
