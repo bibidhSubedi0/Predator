@@ -1,5 +1,8 @@
 name: .NET CI/CD
 
+permissions:
+  contents: write  # Allows creating releases
+
 on:
   push:
     branches: [ "master" ]
@@ -32,7 +35,7 @@ jobs:
         dotnet build --configuration Release
 
     # NEW: Create portable EXE
-    - name: Publish Standalone Game
+    - name: Publish Game
       working-directory: ./MainApp
       run: dotnet publish -c Release -r win-x64 --self-contained true -o published/
 
@@ -44,5 +47,5 @@ jobs:
         files: |
           MainApp/published/**/*.exe
           MainApp/published/**/*.dll
-        tag_name: latest
+        tag_name: build-${{ github.run_number }}
         body: Automated game build - ${{ github.sha }}
