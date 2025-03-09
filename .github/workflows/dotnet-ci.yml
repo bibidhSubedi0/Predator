@@ -1,7 +1,7 @@
 name: .NET CI/CD
 
 permissions:
-  contents: write  # Allows creating releases
+  contents: write  # Required for creating releases
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: windows-latest
 
     steps:
@@ -22,31 +22,34 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Build CoreEngine
+    - name: Build Core Engine
       working-directory: ./CoreEngine
       run: |
         dotnet restore
         dotnet build --configuration Release
 
-    - name: Build MainApp
+    - name: Build & Publish Game
       working-directory: ./MainApp
       run: |
-        dotnet restore
-        dotnet build --configuration Release
+        dotnet publish -c Release -r win-x64 --self-contained true `
+          -o published/ `
+          -p:IncludeAllContentForSelfExtract=false
 
-    # NEW: Create portable EXE
-    - name: Publish Game
-      working-directory: ./MainApp
-      run: dotnet publish -c Release -r win-x64 --self-contained true -o published/
+    - name: Cleanup Resource DLLs
+      working-directory: ./MainApp/published
+      shell: pwsh
+      run: Remove-Item -Path "*resources.dll" -ErrorAction SilentlyContinue
 
-    # NEW: Auto-release
-    - name: Upload to GitHub Releases
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       if: github.ref == 'refs/heads/master'
       with:
         files: |
-          MainApp/published/*.exe          
-          MainApp/published/*.dll           
-          MainApp/published/*.runtimeconfig.json 
+          MainApp/published/*.exe
+          MainApp/published/*.dll
+          MainApp/published/*.runtimeconfig.json
         tag_name: build-${{ github.run_number }}
-        body: Automated game build - ${{ github.sha }}
+        body: |
+          Automated game build 🚀
+          - Commit: ${{ github.sha }}
+          - Date: ${{ github.event.head_commit.timestamp }}
