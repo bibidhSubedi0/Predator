@@ -45,11 +45,15 @@ namespace UIPredator
             UpdateUI();
         }
 
+
+
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
+            UpdateUI();
             try
             {
+                GameOverOverlay.Visibility = Visibility.Collapsed;
                 StartButton.IsEnabled = false;
 
                 StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A"); 
@@ -65,9 +69,16 @@ namespace UIPredator
                 StatusText.Text = "Status: Not Started";
                 StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
 
-                // Add mechansim to draw something on screen
+            
+                
+                GameOverText.Text = "Game Over!";
+                GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
 
-            }
+                // Clean stuff up
+                _core.StartProcedure();
+                }
+
+            
         }
 
         private void LogMessageHandler(string message)

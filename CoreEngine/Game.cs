@@ -238,6 +238,10 @@ namespace Predator.CoreEngine.Game
                     if (checkGameOver())
                     {
                         GameOn = false;
+                        _goatMovementWaiter.Release();
+                        _goatPlacementWaiter.Release();
+                        _tigerMoveWaiter.Release();
+
                         break;
                     }
 

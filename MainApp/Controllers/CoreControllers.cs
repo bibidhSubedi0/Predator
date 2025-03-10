@@ -1,6 +1,7 @@
 ﻿using Predator.CoreEngine.Game;
 using Predator.CoreEngine.Players;
 using Predator.CoreEngine.graphedBoard;
+using System.Threading;
 
 namespace Predator.GameApp
 {
@@ -90,7 +91,7 @@ namespace Predator.GameApp
                 //Task gameTask = Task.Run(() => _game.inGame(_cts.Token), _cts.Token);
                 Task GameTask = _game.inGame(_cts.Token);
                 await GameTask;
-
+                _cts.Cancel();
                 LogMessage?.Invoke("Game loop completed successfully.");
             }
             catch (OperationCanceledException)
@@ -105,6 +106,7 @@ namespace Predator.GameApp
             {
                 GameStatusChanged?.Invoke("Game Stopped");
             }
+            
         }
 
         public void LogGameEvent(string message)
@@ -126,16 +128,13 @@ namespace Predator.GameApp
         public async void MoveTiger(int from, int to){
             _game.NotifyTigerMove(from, to);
         }
+
+        
         
 
 
 
         public void StopGame() => _cts.Cancel();
-
-        //public void StartGame()
-        //{
-        //    _game.inGame();  
-        //}
 
         public Board GetBoardState()
         {
