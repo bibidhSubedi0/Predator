@@ -58,12 +58,15 @@ namespace UIPredator
 
                 await _core.StartGameAsync();
             }
-            finally
+            finally // Game sakiyo
             {
                 StartButton.IsEnabled = true;
                 StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
                 StatusText.Text = "Status: Not Started";
                 StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
+
+                // Add mechansim to draw something on screen
+
             }
         }
 
@@ -128,6 +131,7 @@ namespace UIPredator
                 else
                 {
                     _core.MoveGoat(_selectedGoatPosition, boardPosition);
+                    LogMessageHandler("Selected goat move position " + boardPosition.ToString());
                     _selectedGoatPosition = -1;
                 }
             }

@@ -88,7 +88,6 @@ namespace Predator.GameApp
                 // Task.Run() is a method used to execute a piece of code asynchronously on a separate thread, typically from a thread pool
                 // one cts token is passed to the inGame function and another to task itslef!
                 //Task gameTask = Task.Run(() => _game.inGame(_cts.Token), _cts.Token);
-                await _game.inGame(_cts.Token);
                 Task GameTask = _game.inGame(_cts.Token);
                 await GameTask;
 

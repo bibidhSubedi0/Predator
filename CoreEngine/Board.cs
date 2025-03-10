@@ -195,8 +195,7 @@ using Predator.CoreEngine.Players;
             }
 
 
-
-            List<int> searchFor(int initial, int max_depth, Player p)
+            public List<int> searchFor(int initial, int max_depth, Player p)
             {
                 List<int> locs = new List<int>();
 

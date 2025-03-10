@@ -9,7 +9,7 @@ namespace Predator.CoreEngine.Game
         public Board board = new Board();
         public Tiger[] tigers = new Tiger[4];
         public int[] tigerPositions = { 1, 5, 21, 25 };
-        public bool turn = true;
+        public bool turn = false;
         public int avilableGoats = 20;
         public Goat[] goats = new Goat[20];
         public bool GameOn = false;
@@ -38,6 +38,57 @@ namespace Predator.CoreEngine.Game
             {
                 goats[i] = null;
             }
+        }
+
+        public bool checkGameOver()
+        {
+            // Check if Tigers have won
+            if (avilableGoats == 0)
+            {
+                bool allGoatsEaten = true;
+                foreach (var goat in goats)
+                {
+                    if (goat != null) // If any goat is still on the board
+                    {
+                        allGoatsEaten = false;
+                        break;
+                    }
+                }
+
+                if (allGoatsEaten)
+                {
+                    // Tigers have won because no goats are left to place or on the board
+                    return true;
+                }
+            }
+
+            // Check if Goats have won (no valid moves for any tiger)
+            bool canAnyTigerMove = false;
+            foreach (var tiger in tigers)
+            {
+                for (int i = 1; i <= 25; i++)
+                {
+                    if (board.moveValidation(tiger, i, tiger.position))
+                    {
+                        canAnyTigerMove = true; // At least one tiger can move
+                        break;
+                    }
+                }
+
+                if (canAnyTigerMove)
+                {
+                    break; // No need to check further if a tiger can move
+                }
+            }
+
+            if (!canAnyTigerMove)
+            {
+                // Goats have won because no tiger can move
+                return true;
+            }
+
+            // If neither condition is met, the game is not over
+            return false;
         }
 
         public void NotifyGoatPlacement(int position)
@@ -166,28 +217,33 @@ namespace Predator.CoreEngine.Game
             
             try { 
             // Main Game Loop
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                LogMessage?.Invoke($"Current turn: {(turn ? "Tiger" : "Goat")}");
-
-                if (turn) // turn true = tiger's turn
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    await HandleTigerTurn(cancellationToken);
+                    LogMessage?.Invoke($"Current turn: {(turn ? "Tiger" : "Goat")}");
+
+                    if (turn) // turn true = tiger's turn
+                    {
+                        await HandleTigerTurn(cancellationToken);
+                        }
+                    else
+                    {
+                        await HandleGoatTurn(cancellationToken);
                     }
-                else
-                {
-                    await HandleGoatTurn(cancellationToken);
+
+                    turn = !turn;
+
+                    // NOW THE BOARD HAS CHANGED -> MAKE UI RERENDER THE WHOLE BOARD AGAIN
+                    GameStateChanged?.Invoke();
+
+                    if (checkGameOver())
+                    {
+                        GameOn = false;
+                        break;
+                    }
+
+                    
+
                 }
-
-
-                turn = !turn;
-
-                // NOW THE BOARD HAS CHANGED -> MAKE UI RERENDER THE WHOLE BOARD AGAIN
-                GameStateChanged?.Invoke();
-
-                // Add a small delay (non-blocking)
-                //await Task.Delay(2000, cancellationToken);
-            }
             }
             catch (OperationCanceledException)
             {
@@ -202,15 +258,12 @@ namespace Predator.CoreEngine.Game
                 LogMessage?.Invoke("Game loop exited.");
             }
 
-            LogMessage?.Invoke("Lord let me see sum");
-
         }
 
         public bool GetTurn()
         {
             return turn;
         }
-
 
         public Board GetBoard()
         {
