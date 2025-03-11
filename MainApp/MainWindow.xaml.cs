@@ -25,6 +25,12 @@ namespace UIPredator
 
         public MainWindow()
         {
+            InitGame();
+            // LOL No need for anythere here!
+        }
+
+        private void InitGame()
+        {
             InitializeComponent();
             _core = new CoreControllers();
 
@@ -40,9 +46,6 @@ namespace UIPredator
 
             // ------------------------------------------------
             _core.GameStatusChanged += UpdateGameStatus;
-
-            
-            UpdateUI();
         }
 
 
@@ -50,6 +53,7 @@ namespace UIPredator
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
+            InitGame();
             UpdateUI();
             try
             {
@@ -74,8 +78,6 @@ namespace UIPredator
                 GameOverText.Text = "Game Over!";
                 GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
 
-                // Clean stuff up
-                _core.StartProcedure();
                 }
 
             

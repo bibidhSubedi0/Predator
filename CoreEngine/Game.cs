@@ -26,7 +26,6 @@ namespace Predator.CoreEngine.Game
         public event Action GameStateChanged;
         public event Action<string> LogMessage;  // For debugging/logging
 
-
         public Game()
         {
             for (int i = 0; i < tigers.Length; i++)
@@ -294,6 +293,7 @@ namespace Predator.CoreEngine.Game
             return GameOn;
         }
         
+
     }
 
 }
