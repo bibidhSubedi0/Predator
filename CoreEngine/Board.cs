@@ -1,6 +1,4 @@
 ﻿
-using System.Collections.Generic;
-using System.Numerics;
 using Predator.CoreEngine.Players;
 
     namespace Predator.CoreEngine.graphedBoard
@@ -195,8 +193,7 @@ using Predator.CoreEngine.Players;
             }
 
 
-
-            List<int> searchFor(int initial, int max_depth, Player p)
+            public List<int> searchFor(int initial, int max_depth, Player p)
             {
                 List<int> locs = new List<int>();
 

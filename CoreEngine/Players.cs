@@ -25,12 +25,4 @@ namespace Predator.CoreEngine.Players
             position = pos;
         }
     }
-
-    public class Utils : Player
-    {
-        public void move(Player X, int pos)
-        {
-            X.position = pos;
-        }
-    }
 }

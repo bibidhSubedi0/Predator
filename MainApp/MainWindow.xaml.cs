@@ -15,58 +15,81 @@ namespace UIPredator
 {
     public partial class MainWindow : Window
     {
+        // General Gird Properties
         private const int GridSize = 5;
         private const double CellSize = 100;
         private CoreControllers _core;
 
+        // Basically holds the Actual coordinates of the node position for each node poition [1,25]
         private Dictionary<int, (double X, double Y)> NodePositions = new Dictionary<int, (double, double)>();
+
+        // For handling turns of tiger and goats
         int _selectedTigerPosition = -1;
         int _selectedGoatPosition = -1;
 
+
         public MainWindow()
+        {
+            // Initilize the game through a sepeate component so that game can be easily restarted
+            InitGame();
+        }
+
+
+        // Iitilizize the core controller to the a new game!
+        private void InitGame()
         {
             InitializeComponent();
             _core = new CoreControllers();
-
-            // Subscribe to the UupdateUI when instanciating the window
-            // Subscribing = adding the UpdateUI methid to the list of methods that will be called when the event is raised
-            // Note that this is not invoking the UpdateUI. can be unsubscibed using -=
-
-            // GameStateUpdate Invoke huda Bittikai call UpdateUI!
+            
+            // _core ma vako, GameStateUpdate Invoke huda Bittikai Update the UI
             _core.GameStateUpdated += UpdateUI;
 
             // LogMessage Invoke huda bittikai call LogMessageHandler
             _core.LogMessage += LogMessageHandler;
 
-            // ------------------------------------------------
-            _core.GameStatusChanged += UpdateGameStatus;
-
-            
-            UpdateUI();
         }
+
 
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
+            // Initilize a new _core that creates a completely new game
+            InitGame();
+
+            // Redraw the UI based on the new game
+            UpdateUI();
+
             try
             {
-                StartButton.IsEnabled = false;
 
+                // General Stuff
+                GameOverOverlay.Visibility = Visibility.Collapsed;
+                StartButton.IsEnabled = false;
                 StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A"); 
                 StatusText.Text = "Status: In Progress";
                 StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
 
+
+                // Strart the actual game loop
                 await _core.StartGameAsync();
             }
+
+            // After/Regradless of completion of game Loop
             finally
             {
+
+                // More general stuff
                 StartButton.IsEnabled = true;
                 StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
                 StatusText.Text = "Status: Not Started";
                 StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
+                GameOverText.Text = "Game Over!";
+                GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
+
             }
         }
 
+        // Prints the Loged Message to the UI
         private void LogMessageHandler(string message)
         {
             Dispatcher.Invoke(() =>
@@ -76,14 +99,8 @@ namespace UIPredator
             });
         }
 
-        private void UpdateGameStatus(string status)
-        {
-            Dispatcher.Invoke(() =>
-            {
 
-            });
-        }
-
+        // Well, as the name suggests, Updates the UI, mostly based on the gamestatuschanged event
         private void UpdateUI()
         {
             Dispatcher.Invoke(() =>
@@ -95,6 +112,8 @@ namespace UIPredator
             });
         }
 
+
+        // Helper to UpdateUI -> There is a bug with placements but not harmful enough for me to fix it
         private void BoardCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if(!_core.GetGameStatus())
@@ -123,7 +142,6 @@ namespace UIPredator
                 else if(_selectedGoatPosition ==-1)
                 {
                     _selectedGoatPosition = boardPosition;
-                    LogMessageHandler("Selected goat positon "+_selectedGoatPosition.ToString());
                 }
                 else
                 {
@@ -145,17 +163,8 @@ namespace UIPredator
             }
         }
 
-        // Convert grid (x,y) to board's position index (e.g., 0-24 for 5x5)
-        private int ConvertGridToBoardPosition(int x, int y)
-        {
-            return (y * GridSize + x) +1;
-        }
 
-        private void Window_Closing(object sender, CancelEventArgs e)
-        {
-            _core.StopGame();
-        }
-
+        // Helper to UpdateUI -> Draws the board's graph
         private void DrawBoard()
         {
             var background = new Rectangle
@@ -212,6 +221,8 @@ namespace UIPredator
             DrawEdge(0, 2, 1, 3);  // 3-9
         }
 
+        
+        // Helper to DrawBoard -> To draw the edges of the grpah
         private void DrawEdge(int startRow, int startCol, int endRow, int endCol)
         {
             double x1 = startCol * CellSize + CellSize / 2;
@@ -221,6 +232,8 @@ namespace UIPredator
             DrawLine(x1, y1, x2, y2);
         }
 
+
+        // Helper to DdawEdge -> To draw the lines
         private void DrawLine(double x1, double y1, double x2, double y2)
         {
             Line line = new Line()
@@ -235,6 +248,8 @@ namespace UIPredator
             BoardCanvas.Children.Add(line);
         }
 
+
+        // Helper to UpdateUI -> To draw all the components of the game
         private void DrawComponents()
         {
             Board NewBoardInfo = _core.GetBoardState();
@@ -242,7 +257,7 @@ namespace UIPredator
             Goat[] NewGoatInfo = _core.GetGoats();
             int NewAvilableGoats = _core.GetAvailableGoats();
 
-            foreach(var component in NewTigersInfo)
+            foreach (var component in NewTigersInfo)
             {
                 (double X, double Y) pos = NodePositions[component.position];
                 DrawCircle(pos.X, pos.Y, Brushes.Red, 10);
@@ -251,7 +266,7 @@ namespace UIPredator
 
             foreach (var g in NewGoatInfo)
             {
-                if (g!=null)
+                if (g != null)
                 {
                     (double X, double Y) pos = NodePositions[g.position];
                     DrawCircle(pos.X, pos.Y, Brushes.Blue, 8);
@@ -259,7 +274,9 @@ namespace UIPredator
             }
         }
 
-        private void DrawCircle( double x, double y, Brush color, int radius)
+
+        // Helper to DrawCompoent -> To draw the circular figures
+        private void DrawCircle(double x, double y, Brush color, int radius)
         {
             Ellipse ellipse = new Ellipse()
             {
@@ -269,13 +286,27 @@ namespace UIPredator
                 Fill = color,
                 Stroke = Brushes.Black,
                 StrokeThickness = 1
-                
 
-            }; 
+
+            };
 
             Canvas.SetLeft(ellipse, x - radius);
             Canvas.SetTop(ellipse, y - radius);
             BoardCanvas.Children.Add(ellipse);
+        }
+
+
+
+        // Convert grid (x,y) to board's position index [1,25] bit buggy, but mostly works
+        private int ConvertGridToBoardPosition(int x, int y)
+        {
+            return (y * GridSize + x) +1;
+        }
+
+        
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            _core.StopGame();
         }
 
 
