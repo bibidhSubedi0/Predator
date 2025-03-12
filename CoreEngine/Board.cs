@@ -1,6 +1,4 @@
 ﻿
-using System.Collections.Generic;
-using System.Numerics;
 using Predator.CoreEngine.Players;
 
     namespace Predator.CoreEngine.graphedBoard
