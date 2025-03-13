@@ -10,6 +10,7 @@ namespace PredatorApp.Net
     class ServerHandeling
     {
         TcpClient _client;
+        PacketBuilder _packetbuilder;
         public bool _isConnected { get; set; }
         string _Username = String.Empty;
 
@@ -24,6 +25,13 @@ namespace PredatorApp.Net
                 _Username = Username;
                 _client.Connect("127.0.0.1", 5000);
                 _isConnected = true;
+
+                // Send the username to the server
+                var connectPacket = new PacketBuilder();
+                connectPacket.WriteOPCode(0);
+                connectPacket.WriteString(_Username);
+                _client.Client.Send(connectPacket.GetCompletePacket());
+
             }
         }
     }
