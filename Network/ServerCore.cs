@@ -7,10 +7,11 @@ class GameServer
 {
     private TcpListener listener;
     private bool isRunning = false;
-
+    List<TcpClient> _ClientsList;
     public GameServer()
     {
-        listener = new TcpListener(IPAddress.Any, 5000);
+        listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 5000);
+        _ClientsList = new List<TcpClient>();
     }
 
     public void Start()
@@ -22,14 +23,8 @@ class GameServer
         while (isRunning)
         {
             TcpClient client = listener.AcceptTcpClient();
+            _ClientsList.Add(client);
             Console.WriteLine("Player connected!");
-            Thread clientThread = new Thread(() => HandleClient(client));
-            clientThread.Start();
         }
-    }
-
-    private void HandleClient(TcpClient client)
-    {
-        Console.WriteLine("Handling new player...");
     }
 }

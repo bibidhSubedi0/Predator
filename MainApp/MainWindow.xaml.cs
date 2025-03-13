@@ -10,6 +10,7 @@ using Predator.CoreEngine.Players;
 using System.ComponentModel;
 using Predator.CoreEngine.graphedBoard;
 using static System.Net.Mime.MediaTypeNames;
+using PredatorApp.Net;
 
 namespace UIPredator
 {
@@ -27,11 +28,17 @@ namespace UIPredator
         int _selectedTigerPosition = -1;
         int _selectedGoatPosition = -1;
 
+        // For Network handling, idk if it works, but a cline having one server handling mechansim sounds intuative
+        ServerHandeling networkManager;
+
 
         public MainWindow()
         {
             // Initilize the game through a sepeate component so that game can be easily restarted
             InitGame();
+
+            // Initilize the network component 
+             networkManager = new ServerHandeling();
         }
 
 
@@ -48,6 +55,38 @@ namespace UIPredator
             _core.LogMessage += LogMessageHandler;
 
         }
+
+
+        // Connect To Server
+
+        private void ConnectToNetworkButtonClick(object sender, RoutedEventArgs e)
+        {
+            // Update UI to show connection attempt
+            StatusText.Text = "Status: Connecting to Server...";
+
+            // Run the connection logic asynchronously to avoid blocking the UI
+            Task.Run(() =>
+            {
+                networkManager.ConnectToServer();
+                bool isConnected = networkManager._isConnected;
+
+                // Update UI based on the connection result
+                Dispatcher.Invoke(() =>
+                {
+                    if (isConnected)
+                    {
+                        StatusText.Text = "Status: Connected to Server";
+                    }
+                    else
+                    {
+                        StatusText.Text = "Status: Connection Failed";
+                    }
+                });
+
+            });
+        }
+
+
 
 
         // On strat button click -> This function starts asynchronouly
