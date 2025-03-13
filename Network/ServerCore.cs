@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Network;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -7,11 +8,11 @@ class GameServer
 {
     private TcpListener listener;
     private bool isRunning = false;
-    List<TcpClient> _ClientsList;
+    List<Client> _ClientsList;
     public GameServer()
     {
         listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 5000);
-        _ClientsList = new List<TcpClient>();
+        _ClientsList = new List<Client>();
     }
 
     public void Start()
@@ -23,8 +24,9 @@ class GameServer
         while (isRunning)
         {
             TcpClient client = listener.AcceptTcpClient();
-            _ClientsList.Add(client);
-            Console.WriteLine("Player connected!");
+
+            var user = new Client(client);
+            _ClientsList.Add(user);
         }
     }
 }

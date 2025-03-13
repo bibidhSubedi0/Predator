@@ -31,6 +31,9 @@ namespace UIPredator
         // For Network handling, idk if it works, but a cline having one server handling mechansim sounds intuative
         ServerHandeling networkManager;
 
+        // Player's Network informations
+        String _Username;
+
 
         public MainWindow()
         {
@@ -56,18 +59,46 @@ namespace UIPredator
 
         }
 
+        // Accept Username
+        private void SubmitUsernameButtonClick(object sender, RoutedEventArgs e)
+        {
+            string username = UsernameTextBox.Text.Trim();
+
+
+            if (string.IsNullOrEmpty(username))
+            {
+                // Show an error message if the username is empty
+                UsernameStatusText.Text = "Status: Username cannot be empty!";
+            }
+            else
+            {
+                // Process the username (e.g., send it to the server or store it locally)
+                UsernameStatusText.Text = $"Status: Username '{username}' submitted!";
+                _Username = username;
+
+                // Optionally, you can disable the username input after submission
+                UsernameTextBox.IsEnabled = false;
+                SubmitUsernameButton.IsEnabled = false;
+            }
+        }
+
 
         // Connect To Server
-
         private void ConnectToNetworkButtonClick(object sender, RoutedEventArgs e)
         {
+            if(string.IsNullOrEmpty(_Username))
+            {
+                NetworkStatusText.Text = "Enter a Valid Username!";
+                return;
+            }
+
             // Update UI to show connection attempt
-            StatusText.Text = "Status: Connecting to Server...";
+            NetworkStatusText.Text = "Status: Connecting to Server...";
 
             // Run the connection logic asynchronously to avoid blocking the UI
             Task.Run(() =>
             {
-                networkManager.ConnectToServer();
+                networkManager.ConnectToServer(_Username);
                 bool isConnected = networkManager._isConnected;
 
                 // Update UI based on the connection result
@@ -75,16 +106,18 @@ namespace UIPredator
                 {
                     if (isConnected)
                     {
-                        StatusText.Text = "Status: Connected to Server";
+                        NetworkStatusText.Text = "Status: Connected to Server";
                     }
                     else
                     {
-                        StatusText.Text = "Status: Connection Failed";
+                        NetworkStatusText.Text = "Status: Connection Failed";
                     }
                 });
 
             });
         }
+
+
 
 
 
@@ -104,9 +137,9 @@ namespace UIPredator
                 // General Stuff
                 GameOverOverlay.Visibility = Visibility.Collapsed;
                 StartButton.IsEnabled = false;
-                StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A"); 
-                StatusText.Text = "Status: In Progress";
-                StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
+                GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A");
+                GameStatusText.Text = "Status: In Progress";
+                GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
 
 
                 // Strart the actual game loop
@@ -119,9 +152,9 @@ namespace UIPredator
 
                 // More general stuff
                 StartButton.IsEnabled = true;
-                StatusBorder.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
-                StatusText.Text = "Status: Not Started";
-                StatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
+                GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
+                GameStatusText.Text = "Status: Not Started";
+                GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
                 GameOverText.Text = "Game Over!";
                 GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
 
