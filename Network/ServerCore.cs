@@ -24,9 +24,9 @@ class GameServer
         while (isRunning)
         {
             TcpClient client = listener.AcceptTcpClient();
-
             var user = new Client(client);
             _ClientsList.Add(user);
         }
     }
+
 }
