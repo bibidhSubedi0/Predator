@@ -16,6 +16,8 @@ namespace Network
 
         PacketReader _pcaketReader;
 
+        public bool _isConnected = false;
+
         public Client(TcpClient client)
         {
             
@@ -27,6 +29,16 @@ namespace Network
             // We are assuming that when the client connects, the first thing it sends, is by deafult, a sting with its username
             Username = _pcaketReader.ReadMessage();
             Console.WriteLine($"{DateTime.Now}: Clinet Has connected with the username: {Username}");
+            _isConnected = true;
+        }
+
+        public void HandelClient()
+        {
+            // Always recive data
+            while (_isConnected) { 
+                string data = _pcaketReader.ReadMessage();
+                Console.WriteLine(data);
+            }
         }
 
         public void ReadAnyData(TcpClient client)

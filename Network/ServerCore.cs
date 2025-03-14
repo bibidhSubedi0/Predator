@@ -26,6 +26,9 @@ class GameServer
             TcpClient client = listener.AcceptTcpClient();
             var user = new Client(client);
             _ClientsList.Add(user);
+
+            // Handel The Clinet Asynchronously
+            Task.Run(() => user.HandelClient());
         }
     }
 

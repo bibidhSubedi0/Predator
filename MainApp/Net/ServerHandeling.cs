@@ -26,14 +26,20 @@ namespace PredatorApp.Net
                 _client.Connect("127.0.0.1", 5000);
                 _isConnected = true;
 
-                //Send the username to the server
-                var connectPacket = new PacketBuilder();
-                connectPacket.WriteOPCode(0);
-                connectPacket.WriteString(_Username);
-
-                byte[] payload = connectPacket.GetCompletePacket();
-                _client.Client.Send(payload);
+                // Send username immidiately affter connecting to the server
+                SendStrings(Username);
             }
+        }
+
+        public void SendStrings(string str)
+        {
+            //Send the username to the server
+            var connectPacket = new PacketBuilder();
+            connectPacket.WriteOPCode(0);
+            connectPacket.WriteString(str);
+
+            byte[] payload = connectPacket.GetCompletePacket();
+            _client.Client.Send(payload);
         }
 
         public void SendTigerInfo(int somenumber)

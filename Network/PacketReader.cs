@@ -33,7 +33,6 @@ namespace Network
                 byte[] numberBuffer = new byte[4];
                 _ns.Read(numberBuffer, 0, 4);
                 int number = BitConverter.ToInt32(numberBuffer, 0);
-                Console.WriteLine($"Number: {number}");
                 return number.ToString();
             }
             return "Invalid Packet";

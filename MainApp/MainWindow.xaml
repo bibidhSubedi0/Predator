@@ -189,6 +189,12 @@
                            HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
+                <Button x:Name="CheckPackets" 
+                Content="Send Test Packets"
+                Click="SendPacketsToServer"
+                Background="#5E81AC"
+                Padding="10"
+                Margin="0 0 0 20" Height="29"/>
 
                 <!-- Game Log -->
                 <TextBlock Text="Game Log:"

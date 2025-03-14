@@ -118,8 +118,15 @@ namespace UIPredator
         }
 
 
+        
+        private void SendPacketsToServer(object sender, RoutedEventArgs e)
+        {
+            if(networkManager._isConnected)
+            {
+                networkManager.SendStrings("Test123");
+            }
 
-
+        }
 
 
         // On strat button click -> This function starts asynchronouly
@@ -380,7 +387,6 @@ namespace UIPredator
         {
             _core.StopGame();
         }
-
 
 
     }
