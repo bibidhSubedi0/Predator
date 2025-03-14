@@ -29,14 +29,18 @@ namespace Network
             // We are assuming that when the client connects, the first thing it sends, is by deafult, a sting with its username
             Username = _pcaketReader.ReadMessage();
             Console.WriteLine($"{DateTime.Now}: Clinet Has connected with the username: {Username}");
+            _pcaketReader.FlushNetworkStream();
             _isConnected = true;
         }
 
         public void HandelClient()
         {
             // Always recive data
-            while (_isConnected) { 
+
+            while (_isConnected) {
                 string data = _pcaketReader.ReadMessage();
+                Console.WriteLine("Data Recived from client");
+                _pcaketReader.FlushNetworkStream();
                 Console.WriteLine(data);
             }
         }

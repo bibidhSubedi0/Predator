@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Predator.CoreEngine.Players;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace PredatorApp.Net
 {
@@ -31,28 +33,70 @@ namespace PredatorApp.Net
             }
         }
 
+        // Packet Structure
+        // [OPCode (1 byte)][Data Length (4 bytes)][Serialized Data (N bytes)]
+
         public void SendStrings(string str)
         {
             //Send the username to the server
             var connectPacket = new PacketBuilder();
             connectPacket.WriteOPCode(0);
+            connectPacket.WriteNumber4bytes(str.Length);
             connectPacket.WriteString(str);
 
             byte[] payload = connectPacket.GetCompletePacket();
             _client.Client.Send(payload);
         }
 
-        public void SendTigerInfo(int somenumber)
+        public void SendTurn(bool turn)
         {
-            if(_isConnected)
-            {
-                var testpacket = new PacketBuilder();
-                testpacket.WriteOPCode(1);
-                testpacket.WriteNumber4bytes(555);
+            var connectPacket = new PacketBuilder();
+            connectPacket.WriteOPCode(1);
+            connectPacket.WriteNumber4bytes(1);
+            connectPacket.WriteBooleanValue(turn);
 
-                byte[] payload = testpacket.GetCompletePacket();
-                _client.Client.Send(payload);
-            }
+            byte[] payload = connectPacket.GetCompletePacket();
+            _client.Client.Send(payload);
         }
+
+        public void SendNoOfAvilableGoats(int goats)
+        {
+            
+            var testpacket = new PacketBuilder();
+            testpacket.WriteOPCode(2);
+            testpacket.WriteNumber4bytes(4);
+            testpacket.WriteNumber4bytes(goats);
+
+            byte[] payload = testpacket.GetCompletePacket();
+            _client.Client.Send(payload);
+            
+        }
+
+        public void SendGoatsInformation(Goat[] goats)
+        {
+            var testpacket = new PacketBuilder();
+            testpacket.WriteOPCode(3);
+            testpacket.WriteNumber4bytes(goats.Length);
+            testpacket.WriteGoats(goats);
+
+            byte[] payload = testpacket.GetCompletePacket();
+            
+            _client.Client.Send(payload);
+        }
+
+        public void SendTigersInformation(Tiger[] tigers)
+        {
+            var testpacket = new PacketBuilder();
+            testpacket.WriteOPCode(4);
+            testpacket.WriteNumber4bytes(tigers.Length);
+            testpacket.WriteTigers(tigers);
+
+            byte[] payload = testpacket.GetCompletePacket();
+            _client.Client.Send(payload);
+        }
+
+
+
+
     }
 }

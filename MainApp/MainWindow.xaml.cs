@@ -52,7 +52,10 @@ namespace UIPredator
             _core = new CoreControllers();
             
             // _core ma vako, GameStateUpdate Invoke huda Bittikai Update the UI
+            // Now when game status is updated, Also send the information to the server
             _core.GameStateUpdated += UpdateUI;
+            _core.GameStateUpdated += SendPacketsToServer;
+
 
             // LogMessage Invoke huda bittikai call LogMessageHandler
             _core.LogMessage += LogMessageHandler;
@@ -118,14 +121,36 @@ namespace UIPredator
         }
 
 
-        
-        private void SendPacketsToServer(object sender, RoutedEventArgs e)
+        // Now everytime the game is updated send all the relevent information to the server
+        private void SendPacketsToServer()
         {
-            if(networkManager._isConnected)
-            {
-                networkManager.SendStrings("Test123");
-            }
+            Tiger[] NewTigersInfo = _core.GetTigers();
+            Goat[] NewGoatInfo = _core.GetGoats();
+            int NewAvilableGoats = _core.GetAvailableGoats();
+            bool turn = _core.GetTurn();
 
+            try { 
+            if (networkManager._isConnected)
+                {
+                    // Send all the relevent infromations
+                    /*
+                     *  1 -> Turn
+                     *  2 -> No. of avilable goats
+                     *  3 -> all the aviable goats Goat[] 
+                     *  4 -> Tiger position Tiger[]
+                     */
+
+                    networkManager.SendGoatsInformation(NewGoatInfo);
+                    //networkManager.SendTurn(turn);
+                    //networkManager.SendTigersInformation(NewTigersInfo);
+                    //networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
+
+                }
+            }
+            finally
+            {
+
+            }
         }
 
 

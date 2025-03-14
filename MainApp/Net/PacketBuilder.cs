@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Predator.CoreEngine.Players;
+using System.IO;
 using System.Text;
 
 namespace PredatorApp.Net
@@ -25,22 +26,43 @@ namespace PredatorApp.Net
         {
             _ms.WriteByte(opcode);
         }
+        public void WriteString(string msg)
+        {
+            _ms.Write(Encoding.ASCII.GetBytes(msg));
+        }
 
         public void WriteNumber4bytes(int num)
         {
             _ms.Write(BitConverter.GetBytes(num));
         }
 
-
-
-        // This packet is going to be read as [OPCode|Length|Payload|] Sizes => [1|4|X] => 4 assuming length is INT
-        public void WriteString(string msg)
+        public void WriteBooleanValue(bool val)
         {
-            int len = msg.Length;
-            _ms.Write(BitConverter.GetBytes(len));
-            _ms.Write(Encoding.ASCII.GetBytes(msg));
+            _ms.Write(BitConverter.GetBytes(val));
         }
 
+        public void WriteGoats(Goat[] goats)
+        {
+
+            foreach (Goat g in goats)
+            {
+                if (g != null) { 
+                    WriteNumber4bytes(g.position);
+                }
+                else
+                {
+                    WriteNumber4bytes(0);
+                }
+            }
+
+        }
+        public void WriteTigers(Tiger[] tigers)
+        {
+            foreach (Tiger t in tigers)
+            {
+                WriteNumber4bytes(t.position);
+            }
+        }
 
         public byte[] GetCompletePacket()
         {
