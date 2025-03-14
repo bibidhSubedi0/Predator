@@ -52,7 +52,7 @@ namespace PredatorApp.Net
         {
             var connectPacket = new PacketBuilder();
             connectPacket.WriteOPCode(1);
-            connectPacket.WriteNumber4bytes(1);
+            connectPacket.WriteNumber4bytes(sizeof(bool));
             connectPacket.WriteBooleanValue(turn);
 
             byte[] payload = connectPacket.GetCompletePacket();
@@ -64,7 +64,7 @@ namespace PredatorApp.Net
             
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(2);
-            testpacket.WriteNumber4bytes(4);
+            testpacket.WriteNumber4bytes(sizeof(int));
             testpacket.WriteNumber4bytes(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
@@ -76,7 +76,7 @@ namespace PredatorApp.Net
         {
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(3);
-            testpacket.WriteNumber4bytes(goats.Length);
+            testpacket.WriteNumber4bytes(goats.Length * sizeof(int));
             testpacket.WriteGoats(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
@@ -88,7 +88,7 @@ namespace PredatorApp.Net
         {
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(4);
-            testpacket.WriteNumber4bytes(tigers.Length);
+            testpacket.WriteNumber4bytes(tigers.Length * sizeof(int));
             testpacket.WriteTigers(tigers);
 
             byte[] payload = testpacket.GetCompletePacket();

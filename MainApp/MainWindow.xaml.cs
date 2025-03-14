@@ -141,9 +141,9 @@ namespace UIPredator
                      */
 
                     networkManager.SendGoatsInformation(NewGoatInfo);
-                    //networkManager.SendTurn(turn);
-                    //networkManager.SendTigersInformation(NewTigersInfo);
-                    //networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
+                    networkManager.SendTurn(turn);
+                    networkManager.SendTigersInformation(NewTigersInfo);
+                    networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
 
                 }
             }
