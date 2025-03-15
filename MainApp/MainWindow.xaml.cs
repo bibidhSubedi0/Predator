@@ -11,6 +11,7 @@ using System.ComponentModel;
 using Predator.CoreEngine.graphedBoard;
 using static System.Net.Mime.MediaTypeNames;
 using PredatorApp.Net;
+using Network;
 
 namespace UIPredator
 {
@@ -37,11 +38,13 @@ namespace UIPredator
 
         public MainWindow()
         {
+
+            // Initilize the network component 
+            networkManager = new ServerHandeling();
+
             // Initilize the game through a sepeate component so that game can be easily restarted
             InitGame();
 
-            // Initilize the network component 
-             networkManager = new ServerHandeling();
         }
 
 
@@ -59,6 +62,7 @@ namespace UIPredator
 
             // LogMessage Invoke huda bittikai call LogMessageHandler
             _core.LogMessage += LogMessageHandler;
+            networkManager.LogMessageNet += LogMessageHandler;
 
         }
 
@@ -89,35 +93,46 @@ namespace UIPredator
         // Connect To Server
         private void ConnectToNetworkButtonClick(object sender, RoutedEventArgs e)
         {
-            if(string.IsNullOrEmpty(_Username))
-            {
-                NetworkStatusText.Text = "Enter a Valid Username!";
-                return;
-            }
-
-            // Update UI to show connection attempt
-            NetworkStatusText.Text = "Status: Connecting to Server...";
-
-            // Run the connection logic asynchronously to avoid blocking the UI
-            Task.Run(() =>
-            {
-                networkManager.ConnectToServer(_Username);
-                bool isConnected = networkManager._isConnected;
-
-                // Update UI based on the connection result
-                Dispatcher.Invoke(() =>
+            if (!networkManager._isConnected) { 
+                if (string.IsNullOrEmpty(_Username))
                 {
-                    if (isConnected)
+                    NetworkStatusText.Text = "Enter a Valid Username!";
+                    return;
+                }
+
+                // Update UI to show connection attempt
+                NetworkStatusText.Text = "Status: Connecting to Server...";
+
+                // Run the connection logic asynchronously to avoid blocking the UI
+                Task.Run(() =>
+                {
+                    networkManager.ConnectToServer(_Username);
+                    
+
+                    // Update UI based on the connection result
+                    Dispatcher.Invoke(() =>
                     {
-                        NetworkStatusText.Text = "Status: Connected to Server";
-                    }
-                    else
-                    {
-                        NetworkStatusText.Text = "Status: Connection Failed";
-                    }
+                        if (networkManager._isConnected)
+                        {
+                            NetworkStatusText.Text = "Status: Connected to Server";
+                            LogMessageHandler("Connected to the Server!");
+                        }
+                        else
+                        {
+                            NetworkStatusText.Text = "Status: Connection Failed";
+                        }
+                    });
+
                 });
 
-            });
+
+                ReadPacketsFromTheServer();
+            }
+            else
+            {
+                LogMessageHandler("Already Connted to the server!");
+            }
+
         }
 
 
@@ -141,9 +156,9 @@ namespace UIPredator
                      */
 
                     networkManager.SendGoatsInformation(NewGoatInfo);
-                    networkManager.SendTurn(turn);
-                    networkManager.SendTigersInformation(NewTigersInfo);
-                    networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
+                    //networkManager.SendTurn(turn);
+                    //networkManager.SendTigersInformation(NewTigersInfo);
+                    //networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
 
                 }
             }
@@ -153,6 +168,12 @@ namespace UIPredator
             }
         }
 
+        // Keep Reading packets from the server
+        private void ReadPacketsFromTheServer()
+        {
+            // Keep reding while connected
+            Task.Run(() => networkManager.ReadPackets());
+        }
 
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)

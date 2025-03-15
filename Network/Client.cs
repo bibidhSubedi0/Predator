@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using PredatorApp.Net;
 
 namespace Network
 {
@@ -39,6 +40,16 @@ namespace Network
             Username = _pcaketReader.ReadUsername();
             Console.WriteLine($"{DateTime.Now}: Clinet Has connected with the username: {Username}");
             _pcaketReader.FlushNetworkStream();
+
+            // Send Conformation to the client backvar connectPacket = new PacketBuilder();
+            var connectPacket = new PacketBuilder();
+            string str = "Connected Successfully!";
+            connectPacket.WriteOPCode(0);
+            connectPacket.WriteNumber4bytes(str.Length);
+            connectPacket.WriteString(str);
+            byte[] payload = connectPacket.GetCompletePacket();
+            ClientSocket.Client.Send(payload);
+
             _isConnected = true;
         }
 
@@ -81,8 +92,20 @@ namespace Network
                         break;
 
                 }
+                
                 Console.WriteLine("Data Recived from client: "+ msg);
                 _pcaketReader.FlushNetworkStream();
+
+                // Send Some information back to client ackownadsing the data
+                string str = "Recived!";
+                str += msg;
+                var connectPacket = new PacketBuilder();
+                connectPacket.WriteOPCode(0);
+                connectPacket.WriteNumber4bytes(str.Length);
+                connectPacket.WriteString(str);
+
+                byte[] payload = connectPacket.GetCompletePacket();
+                ClientSocket.Client.Send(payload);
             }
         }
 

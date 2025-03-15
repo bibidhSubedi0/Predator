@@ -1,4 +1,5 @@
-﻿using Predator.CoreEngine.Players;
+﻿using Network;
+using Predator.CoreEngine.Players;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,20 +14,77 @@ namespace PredatorApp.Net
     {
         TcpClient _client;
         PacketBuilder _packetbuilder;
-        public bool _isConnected { get; set; }
+        PacketReader _packetReader;
+        public bool _isConnected;
         string _Username = String.Empty;
+
+        // Information read form server
+        bool turn;
+        int AvilableGoats;
+        int[] GoatPositions;
+        int[] TigerPosition;
+        string Message;
+
+        public event Action<string> LogMessageNet;
 
         public ServerHandeling()
         {
             _client = new TcpClient();
         }
 
+
+        public void ReadPackets() {
+
+            LogMessageNet?.Invoke("Listining to server!");
+
+            while (_isConnected)
+            {
+                byte opcode = _packetReader.ReadByte();
+                string msg = "";
+                switch (opcode)
+                {
+                    // For usename [for now]
+                    case 0:
+                        Message = _packetReader.ReadUsername();
+                        msg += "Text Message : " + Message;
+                        break;
+                    // For turn
+                    case 1:
+                        turn = _packetReader.ReadTurn();
+                        msg += "Turn";
+                        break;
+                    // For Remaining Goats
+                    case 2:
+                        AvilableGoats = _packetReader.ReadRemainingGoats();
+                        msg += "Remaining GOats";
+                        break;
+
+                    case 3:
+                        GoatPositions = _packetReader.ReadGoatPosition();
+                        msg += "Goat Positions";
+                        break;
+                    case 4:
+                        TigerPosition = _packetReader.ReadTigerPosition();
+                        msg += "Tiger Position";
+                        break;
+                    default:
+                        msg += "Invalid Opcode, Currupted Packet";
+                        break;
+                }
+                
+                LogMessageNet?.Invoke("Server Message : "+msg);
+                _packetReader.FlushNetworkStream();
+            }
+
+        }
         public void ConnectToServer(string Username)
         {
             if (!_isConnected) {
                 _Username = Username;
                 _client.Connect("127.0.0.1", 5000);
                 _isConnected = true;
+
+                _packetReader = new PacketReader(_client.GetStream());
 
                 // Send username immidiately affter connecting to the server
                 SendStrings(Username);
@@ -94,8 +152,6 @@ namespace PredatorApp.Net
             byte[] payload = testpacket.GetCompletePacket();
             _client.Client.Send(payload);
         }
-
-
 
 
     }
