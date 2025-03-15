@@ -28,7 +28,15 @@ class GameServer
             _ClientsList.Add(user);
 
             // Handel The Clinet Asynchronously
+            // Now server can read data independintly from the clients
             Task.Run(() => user.HandelClient());
+
+            // Display all the connected Clinets
+            Console.WriteLine("All Avilable clinets ATM");
+            foreach (Client c in _ClientsList)
+            {
+                Console.WriteLine("Username : " + c.Username + "\t UserID : " + c.UserID);
+            }
         }
     }
 
