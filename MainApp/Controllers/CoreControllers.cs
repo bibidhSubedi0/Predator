@@ -69,6 +69,12 @@ namespace Predator.GameApp
         {
             _game.NotifyGoatPlacement(position);
         }
+        
+        public void SetTurn(bool turn)
+        {
+            _game.turn = turn;
+        }
+        
         public void MoveGoat(int from, int to)
         {
             _game.NotifyGoatMove(from, to);

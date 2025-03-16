@@ -36,11 +36,16 @@ namespace UIPredator
         String _Username;
 
 
+        // Turn Assigned to this Clinet Permanently by the server
+        bool PTurn = false;
+
+
         public MainWindow()
         {
 
             // Initilize the network component 
             networkManager = new ServerHandeling();
+
 
             // Initilize the game through a sepeate component so that game can be easily restarted
             InitGame();
@@ -63,6 +68,7 @@ namespace UIPredator
             // LogMessage Invoke huda bittikai call LogMessageHandler
             _core.LogMessage += LogMessageHandler;
             networkManager.LogMessageNet += LogMessageHandler;
+            networkManager.NewStateRecived += ProcessNewStates;
 
         }
 
@@ -174,6 +180,15 @@ namespace UIPredator
             Task.Run(() => networkManager.ReadPackets());
         }
 
+
+
+        void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        {
+            // New state recived from the server
+            PTurn = TurnServer;
+
+        }
+
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
@@ -203,6 +218,10 @@ namespace UIPredator
                     GameStatusText.Text = "Status: In Progress";
                     GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
 
+
+
+                    // Now set the game staes according to the server
+                    _core.SetTurn(PTurn);
 
                     // Strart the actual game loop
                     await _core.StartGameAsync();
@@ -260,45 +279,55 @@ namespace UIPredator
                 return;
             }
 
-            // Get the mouse click position relative to the board canvas
-            Point clickPosition = e.GetPosition(BoardCanvas);
+            if (PTurn == _core.GetTurn()) {
+
+                LogMessageHandler("My Turn at the beginnign: " + _core.GetTurn());
+
+                // Get the mouse click position relative to the board canvas
+                Point clickPosition = e.GetPosition(BoardCanvas);
 
             
-            // Map the coordinates to your game's grid position
-            int gridX = (int)(clickPosition.X / CellSize);
-            int gridY = (int)(clickPosition.Y / CellSize);
-            int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
+                // Map the coordinates to your game's grid position
+                int gridX = (int)(clickPosition.X / CellSize);
+                int gridY = (int)(clickPosition.Y / CellSize);
+                int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
 
 
-            // Call game logic based on the current turn
-            if (!_core.GetTurn()) // Goat's turn
-            {
-                if(_core.GetAvailableGoats() >0)
+                // Call game logic based on the current turn
+                if (!_core.GetTurn()) // Goat's turn
                 {
-                    _core.PlaceGoat(boardPosition);
+                    if(_core.GetAvailableGoats() >0)
+                    {
+                        _core.PlaceGoat(boardPosition);
                     
+                    }
+                    else if(_selectedGoatPosition ==-1)
+                    {
+                        _selectedGoatPosition = boardPosition;
+                    }
+                    else
+                    {
+                        _core.MoveGoat(_selectedGoatPosition, boardPosition);
+                        _selectedGoatPosition = -1;
+                    }
                 }
-                else if(_selectedGoatPosition ==-1)
+                else // Tiger's turn
                 {
-                    _selectedGoatPosition = boardPosition;
+                    if (_selectedTigerPosition == -1)
+                    {
+                        _selectedTigerPosition = boardPosition; // First click: select tiger
+                    }
+                    else
+                    {
+                        _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
+                        _selectedTigerPosition = -1; // Reset selection
+                    }
                 }
-                else
-                {
-                    _core.MoveGoat(_selectedGoatPosition, boardPosition);
-                    _selectedGoatPosition = -1;
-                }
+                LogMessageHandler("My Turn at the End: " + _core.GetTurn());
             }
-            else // Tiger's turn
+            else
             {
-                if (_selectedTigerPosition == -1)
-                {
-                    _selectedTigerPosition = boardPosition; // First click: select tiger
-                }
-                else
-                {
-                    _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
-                    _selectedTigerPosition = -1; // Reset selection
-                }
+                LogMessageHandler("Not your Turn!");
             }
         }
 

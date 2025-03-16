@@ -61,24 +61,15 @@ class GameServer
                     Console.WriteLine(requester.Username+" :Match Foumd with: " + c.Username);
                     Console.WriteLine(c.Username + " :Match Foumd with: " + requester.Username);
 
-
-                    // Send confirmation to both of the players
-                    var ConfirmationPacket = new PacketBuilder();
-                    ConfirmationPacket.WriteOPCode(5);
-                    byte[] payload = ConfirmationPacket.GetCompletePacket();
-
-                    c.ClientSocket.Client.Send(payload);
-                    requester.ClientSocket.Client.Send(payload);
-
-                    c.InMatch = true;
-                    c.MatchRequested = false;
-                    requester.InMatch = true;
-                    requester.MatchRequested = false;
+                    Task.Run(() => (new HandelGame()).MainGame(requester, c));
+                    return;
 
                 }
             }
 
         }
+
+        // Now goto handel Game
         
     }
 

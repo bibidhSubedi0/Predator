@@ -25,8 +25,10 @@ namespace PredatorApp.Net
         int[] TigerPosition;
         string Message;
 
+        public event Action<int[], int[],int, bool> NewStateRecived;
         public event Action<string> LogMessageNet;
         SemaphoreSlim MatchFound = new SemaphoreSlim(0);
+
 
         public ServerHandeling()
         {
@@ -68,14 +70,21 @@ namespace PredatorApp.Net
                         TigerPosition = _packetReader.ReadTigerPosition();
                         msg += "Tiger Position";
                         break;
-                    // Match found from server
+                    // Match found from server and server assigned a turn value
                     case 5:
+                        turn = _packetReader.ReadTurn();
+                        msg += turn;
                         NotifyMatchFind();
                         break;
                     default:
                         msg += "Invalid Opcode, Currupted Packet";
                         break;
                 }
+
+                // Relay these info to the core game 
+                NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
+
+
                 
                 LogMessageNet?.Invoke("Server Message : "+msg);
                 _packetReader.FlushNetworkStream();
