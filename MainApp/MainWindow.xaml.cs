@@ -122,7 +122,6 @@ namespace UIPredator
                             NetworkStatusText.Text = "Status: Connection Failed";
                         }
                     });
-
                 });
 
 
@@ -178,39 +177,54 @@ namespace UIPredator
         // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
-            // Initilize a new _core that creates a completely new game
-            InitGame();
+            // Do not start the game if not connected to the server!
 
-            // Redraw the UI based on the new game
-            UpdateUI();
-
-            try
-            {
-
-                // General Stuff
-                GameOverOverlay.Visibility = Visibility.Collapsed;
-                StartButton.IsEnabled = false;
-                GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A");
-                GameStatusText.Text = "Status: In Progress";
-                GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
+            if (networkManager._isConnected) {
+                // Ask for match from the server!
 
 
-                // Strart the actual game loop
-                await _core.StartGameAsync();
+                GameStatusText.Text = "Searching for Match";
+                await networkManager.RequestMatch();
+
+
+                // Initilize a new _core that creates a completely new game
+                InitGame();
+
+                // Redraw the UI based on the new game
+                UpdateUI();
+
+                try
+                {
+
+                    // General Stuff
+                    GameOverOverlay.Visibility = Visibility.Collapsed;
+                    StartButton.IsEnabled = false;
+                    GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#4C566A");
+                    GameStatusText.Text = "Status: In Progress";
+                    GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#A3BE8C");
+
+
+                    // Strart the actual game loop
+                    await _core.StartGameAsync();
+                }
+
+                // After/Regradless of completion of game Loop
+                finally
+                {
+
+                    // More general stuff
+                    StartButton.IsEnabled = true;
+                    GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
+                    GameStatusText.Text = "Status: Not Started";
+                    GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
+                    GameOverText.Text = "Game Over!";
+                    GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
+
+                }
             }
-
-            // After/Regradless of completion of game Loop
-            finally
+            else
             {
-
-                // More general stuff
-                StartButton.IsEnabled = true;
-                GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
-                GameStatusText.Text = "Status: Not Started";
-                GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
-                GameOverText.Text = "Game Over!";
-                GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
-
+                GameStatusText.Text = "Please Connect to the Server!";
             }
         }
 

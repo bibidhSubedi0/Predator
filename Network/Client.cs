@@ -19,6 +19,10 @@ namespace Network
         PacketReader _pcaketReader;
 
         public bool _isConnected = false;
+        public bool InMatch = false;
+        public bool MatchRequested = false;
+
+        public event Action<Guid> MatchRequestedAction;
 
         // Also need to actually store the data from the clients
         // For now lets just store the relevent informations and not build back the objects
@@ -86,6 +90,14 @@ namespace Network
                     case 4:
                         TigerPosition = _pcaketReader.ReadTigerPosition();
                         msg += "Tiger Position";
+                        break;
+                    //New Match Requested by the user
+                    case 5:
+                        if (!InMatch)
+                        {
+                            MatchRequested = true;
+                            MatchRequestedAction?.Invoke(UserID);
+                        }
                         break;
                     default:
                         msg += "Invalid Opcode, Currupted Packet";

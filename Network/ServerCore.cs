@@ -1,4 +1,5 @@
 ﻿using Network;
+using PredatorApp.Net;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -13,6 +14,8 @@ class GameServer
     {
         listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 5000);
         _ClientsList = new List<Client>();
+
+
     }
 
     public void Start()
@@ -30,6 +33,7 @@ class GameServer
             // Handel The Clinet Asynchronously
             // Now server can read data independintly from the clients
             Task.Run(() => user.HandelClient());
+            user.MatchRequestedAction += HandelMatchmaking;
 
             // Display all the connected Clinets
             Console.WriteLine("All Avilable clinets ATM");
@@ -38,6 +42,44 @@ class GameServer
                 Console.WriteLine("Username : " + c.Username + "\t UserID : " + c.UserID);
             }
         }
+    }
+
+    public void HandelMatchmaking(Guid UID)
+    {
+        Client requester = _ClientsList.Find(c => c.UserID == UID);
+
+        Console.WriteLine("Match Request by " + requester.Username);
+        
+        while ((_ClientsList.Find(c => c.UserID == UID))?.InMatch == false)
+        { 
+            foreach(Client c in _ClientsList)
+            {
+                if(c.UserID!=UID && c.InMatch == false && c.MatchRequested==true)
+                {
+                    // Match them up!
+                    // Idk how lol but match them up
+                    Console.WriteLine(requester.Username+" :Match Foumd with: " + c.Username);
+                    Console.WriteLine(c.Username + " :Match Foumd with: " + requester.Username);
+
+
+                    // Send confirmation to both of the players
+                    var ConfirmationPacket = new PacketBuilder();
+                    ConfirmationPacket.WriteOPCode(5);
+                    byte[] payload = ConfirmationPacket.GetCompletePacket();
+
+                    c.ClientSocket.Client.Send(payload);
+                    requester.ClientSocket.Client.Send(payload);
+
+                    c.InMatch = true;
+                    c.MatchRequested = false;
+                    requester.InMatch = true;
+                    requester.MatchRequested = false;
+
+                }
+            }
+
+        }
+        
     }
 
 }

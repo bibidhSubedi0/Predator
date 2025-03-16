@@ -26,6 +26,7 @@ namespace PredatorApp.Net
         string Message;
 
         public event Action<string> LogMessageNet;
+        SemaphoreSlim MatchFound = new SemaphoreSlim(0);
 
         public ServerHandeling()
         {
@@ -67,6 +68,10 @@ namespace PredatorApp.Net
                         TigerPosition = _packetReader.ReadTigerPosition();
                         msg += "Tiger Position";
                         break;
+                    // Match found from server
+                    case 5:
+                        NotifyMatchFind();
+                        break;
                     default:
                         msg += "Invalid Opcode, Currupted Packet";
                         break;
@@ -89,6 +94,23 @@ namespace PredatorApp.Net
                 // Send username immidiately affter connecting to the server
                 SendStrings(Username);
             }
+        }
+
+        public void NotifyMatchFind()
+        {
+            MatchFound.Release();
+        }
+
+        public async Task RequestMatch()
+        {
+            var RequsetPacket = new PacketBuilder();
+            RequsetPacket.WriteOPCode(5);
+            byte[] payload = RequsetPacket.GetCompletePacket();
+            _client.Client.Send(payload);
+
+            // Check for confirmation form the server!
+            await MatchFound.WaitAsync();
+            
         }
 
         // Packet Structure
