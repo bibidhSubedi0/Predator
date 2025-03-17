@@ -20,10 +20,40 @@ namespace Network
         PacketReader _pcaketReader;
 
         public bool _isConnected = false;
-        public bool InMatch = false;
-        public bool MatchRequested = false;
+        //public bool InMatch = false;
+        //public bool MatchRequested = false;
 
         public event Action<Guid> MatchRequestedAction;
+
+
+
+        private readonly object _lock = new object();
+        private bool _inMatch;
+        private bool _matchRequested;
+
+
+        // All this backchodi because, these are shared resouces between both clients, so thread saftely issue
+        public bool InMatch
+        {
+            get { 
+                lock (_lock) { return _inMatch; } 
+            }
+            set { 
+                lock (_lock) { _inMatch = value; } 
+            }
+        }
+
+        public bool MatchRequested
+        {
+            get {
+                lock (_lock) { return _matchRequested; } 
+            }
+            set { 
+                lock (_lock) { _matchRequested = value; } 
+            }
+        }
+
+
 
         // Also need to actually store the data from the clients
         // For now lets just store the relevent informations and not build back the objects
@@ -81,7 +111,7 @@ namespace Network
                     // For Remaining Goats
                     case 2:
                         AvilableGoats = _pcaketReader.ReadRemainingGoats();
-                        msg += "Remaining Gaats";
+                        msg += "Remaining Gats";
                         break;
                
                     case 3:
@@ -106,19 +136,7 @@ namespace Network
 
                 }
                 
-                Console.WriteLine("Data Recived from client: "+ msg);
-                _pcaketReader.FlushNetworkStream();
-
-                // Send Some information back to client ackownadsing the data
-                string str = "Recived!";
-                str += msg;
-                var connectPacket = new PacketBuilder();
-                connectPacket.WriteOPCode(0);
-                connectPacket.WriteNumber4bytes(str.Length);
-                connectPacket.WriteString(str);
-
-                byte[] payload = connectPacket.GetCompletePacket();
-                ClientSocket.Client.Send(payload);
+                Console.WriteLine("Data Recived from client: "+ Username+ "  : "+ msg);
             }
         }
 

@@ -62,7 +62,7 @@ namespace UIPredator
             // _core ma vako, GameStateUpdate Invoke huda Bittikai Update the UI
             // Now when game status is updated, Also send the information to the server
             _core.GameStateUpdated += UpdateUI;
-            _core.GameStateUpdated += SendPacketsToServer;
+            //_core.GameStateUpdated += SendPacketsToServer;
 
 
             // LogMessage Invoke huda bittikai call LogMessageHandler
@@ -161,9 +161,9 @@ namespace UIPredator
                      */
 
                     networkManager.SendGoatsInformation(NewGoatInfo);
-                    //networkManager.SendTurn(turn);
-                    //networkManager.SendTigersInformation(NewTigersInfo);
-                    //networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
+                    networkManager.SendTurn(turn);
+                    networkManager.SendTigersInformation(NewTigersInfo);
+                    networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
 
                 }
             }
@@ -287,9 +287,6 @@ namespace UIPredator
             }
 
             if (PTurn == _core.GetTurn()) {
-
-                LogMessageHandler("My Turn at the beginnign: " + _core.GetTurn());
-
                 // Get the mouse click position relative to the board canvas
                 Point clickPosition = e.GetPosition(BoardCanvas);
 
@@ -306,6 +303,9 @@ namespace UIPredator
                     if(_core.GetAvailableGoats() >0)
                     {
                         _core.PlaceGoat(boardPosition);
+                        // Send The current board state to the network
+                        SendPacketsToServer();
+
                     
                     }
                     else if(_selectedGoatPosition ==-1)
@@ -316,6 +316,7 @@ namespace UIPredator
                     {
                         _core.MoveGoat(_selectedGoatPosition, boardPosition);
                         _selectedGoatPosition = -1;
+                        SendPacketsToServer();
                     }
                 }
                 else // Tiger's turn
@@ -328,13 +329,13 @@ namespace UIPredator
                     {
                         _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
                         _selectedTigerPosition = -1; // Reset selection
+                        SendPacketsToServer();
                     }
                 }
-                LogMessageHandler("My Turn at the End: " + _core.GetTurn());
             }
             else
             {
-                LogMessageHandler("Not your Turn!");
+
             }
         }
 

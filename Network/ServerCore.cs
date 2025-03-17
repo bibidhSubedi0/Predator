@@ -49,28 +49,33 @@ class GameServer
         Client requester = _ClientsList.Find(c => c.UserID == UID);
 
         Console.WriteLine("Match Request by " + requester.Username);
-        
-        while ((_ClientsList.Find(c => c.UserID == UID))?.InMatch == false)
-        { 
-            foreach(Client c in _ClientsList)
+
+            while (requester.InMatch == false)
             {
-                if(c.UserID!=UID && c.InMatch == false && c.MatchRequested==true)
-                {
-                    // Match them up!
-                    // Idk how lol but match them up
-                    Console.WriteLine(requester.Username+" :Match Foumd with: " + c.Username);
-                    Console.WriteLine(c.Username + " :Match Foumd with: " + requester.Username);
+                requester = _ClientsList.Find(c => c.UserID == UID);
+                lock (_ClientsList) {
+                    foreach (Client c in _ClientsList)
+                    {
+                        if (c.UserID != UID && c.InMatch == false && c.MatchRequested == true)
+                        {
+                            // Match them up!
+                            // Idk how lol but match them up
+                            Console.WriteLine(requester.Username + " :Match Foumd with: " + c.Username);
+                            Console.WriteLine(c.Username + " :Match Foumd with: " + requester.Username);
 
-                    Task.Run(() => (new HandelGame()).MainGame(requester, c));
-                    return;
+                            requester.InMatch = true;
+                            c.InMatch = true;
+                            Task.Run(() => (new HandelGame()).MainGame(requester, c));
+                            return;
 
+                        }
+                    }
                 }
-            }
 
+
+            // Allows other threads to run
+            Thread.Sleep(100);
         }
-
-        // Now goto handel Game
-        
     }
 
 
