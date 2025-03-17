@@ -20,14 +20,16 @@ namespace PredatorApp.Net
 
         // Information read form server
         bool turn;
-        int AvilableGoats;
-        int[] GoatPositions;
-        int[] TigerPosition;
+        int AvilableGoats = 20;
+        int[] GoatPositions = new int[20];
+        int[] TigerPosition = new int[] { 1, 5, 21, 25 };
         string Message;
 
         public event Action<int[], int[],int, bool> NewStateRecived;
+        public event Action<bool> NewMatchRecived;
         public event Action<string> LogMessageNet;
         SemaphoreSlim MatchFound = new SemaphoreSlim(0);
+        SemaphoreSlim UpdateFromServer = new SemaphoreSlim(0);
 
 
         public ServerHandeling()
@@ -55,25 +57,30 @@ namespace PredatorApp.Net
                     case 1:
                         turn = _packetReader.ReadTurn();
                         msg += "Turn";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     // For Remaining Goats
                     case 2:
                         AvilableGoats = _packetReader.ReadRemainingGoats();
                         msg += "Remaining GOats";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
 
                     case 3:
                         GoatPositions = _packetReader.ReadGoatPosition();
                         msg += "Goat Positions";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     case 4:
                         TigerPosition = _packetReader.ReadTigerPosition();
                         msg += "Tiger Position";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     // Match found from server and server assigned a turn value
                     case 5:
                         turn = _packetReader.ReadTurn();
                         msg += turn;
+                        NewMatchRecived?.Invoke(turn);
                         NotifyMatchFind();
                         break;
                     default:
@@ -82,10 +89,12 @@ namespace PredatorApp.Net
                 }
 
                 // Relay these info to the core game 
-                NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
-
-
+                //NotifyStateUpdate();
                 
+
+
+
+
                 LogMessageNet?.Invoke("Server Message : "+msg);
                 _packetReader.FlushNetworkStream();
             }
@@ -109,6 +118,13 @@ namespace PredatorApp.Net
         {
             MatchFound.Release();
         }
+
+        public void NotifyStateUpdate()
+        {
+            UpdateFromServer.Release();
+        }
+
+
 
         public async Task RequestMatch()
         {

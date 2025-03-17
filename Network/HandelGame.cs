@@ -1,4 +1,5 @@
-﻿using PredatorApp.Net;
+﻿using Predator.CoreEngine.Players;
+using PredatorApp.Net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +36,27 @@ namespace Network
         {
 
             Console.WriteLine("Handling the Game for " + c1.Username + " and " + c2.Username);
+            // Initilize a new Game State for both of them
+            
+            Tiger[] temptigers = new Tiger[4];
+            int[] tigerPositions = { 1, 5, 21,20 };
+
+            for (int i = 0; i < temptigers.Length; i++)
+            {
+                temptigers[i] = new Tiger(tigerPositions[i]);
+            }
+
+            Goat[] tempgoat = new Goat[20];
+            for (int i = 0; i < tempgoat.Length; i++)
+            {
+                    tempgoat[i] = null;
+            }
+
+            int RemainingGoats = 20;
+
+
+
+
             // Send confirmation to both of the players along with their assigned turn
 
             // Send false =  Goat to c2
@@ -52,6 +74,21 @@ namespace Network
             ConfirmationPacket2.WriteBooleanValue(!Turn);
             byte[] payload2= ConfirmationPacket2.GetCompletePacket();
             c1.ClientSocket.Client.Send(payload2);
+            
+            // I probably need some kind of handshake here!? IDK, I do not know network programming that good yet
+
+             //Also send all the remaining Information
+            c1.SendTigersInformation(temptigers);
+            c1.SendGoatsInformation(tempgoat);
+            c1.SendNoOfAvilableGoats(RemainingGoats);
+            //c1.SendTurn(Turn);
+
+
+            c2.SendTigersInformation(temptigers);
+            c2.SendGoatsInformation(tempgoat);
+            c2.SendNoOfAvilableGoats(RemainingGoats);
+            //c2.SendTurn(!Turn);
+
 
             c2.InMatch = true;
             c2.MatchRequested = false;

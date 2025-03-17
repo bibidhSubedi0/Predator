@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using PredatorApp.Net;
+using Predator.CoreEngine.Players;
 
 namespace Network
 {
@@ -80,7 +81,7 @@ namespace Network
                     // For Remaining Goats
                     case 2:
                         AvilableGoats = _pcaketReader.ReadRemainingGoats();
-                        msg += "Remaining GOats";
+                        msg += "Remaining Gaats";
                         break;
                
                     case 3:
@@ -119,6 +120,66 @@ namespace Network
                 byte[] payload = connectPacket.GetCompletePacket();
                 ClientSocket.Client.Send(payload);
             }
+        }
+
+
+        public void SendStrings(string str)
+        {
+            //Send the username to the server
+            var connectPacket = new PacketBuilder();
+            connectPacket.WriteOPCode(0);
+            connectPacket.WriteNumber4bytes(str.Length);
+            connectPacket.WriteString(str);
+
+            byte[] payload = connectPacket.GetCompletePacket();
+            ClientSocket.Client.Send(payload);
+        }
+
+        public void SendTurn(bool turn)
+        {
+            var connectPacket = new PacketBuilder();
+            connectPacket.WriteOPCode(1);
+            connectPacket.WriteNumber4bytes(sizeof(bool));
+            connectPacket.WriteBooleanValue(turn);
+
+            byte[] payload = connectPacket.GetCompletePacket();
+            ClientSocket.Client.Send(payload);
+        }
+
+        public void SendNoOfAvilableGoats(int goats)
+        {
+
+            var testpacket = new PacketBuilder();
+            testpacket.WriteOPCode(2);
+            testpacket.WriteNumber4bytes(sizeof(int));
+            testpacket.WriteNumber4bytes(goats);
+
+            byte[] payload = testpacket.GetCompletePacket();
+            ClientSocket.Client.Send(payload);
+
+        }
+
+        public void SendGoatsInformation(Goat[] goats)
+        {
+            var testpacket = new PacketBuilder();
+            testpacket.WriteOPCode(3);
+            testpacket.WriteNumber4bytes(goats.Length * sizeof(int));
+            testpacket.WriteGoats(goats);
+
+            byte[] payload = testpacket.GetCompletePacket();
+
+            ClientSocket.Client.Send(payload);
+        }
+
+        public void SendTigersInformation(Tiger[] tigers)
+        {
+            var testpacket = new PacketBuilder();
+            testpacket.WriteOPCode(4);
+            testpacket.WriteNumber4bytes(tigers.Length * sizeof(int));
+            testpacket.WriteTigers(tigers);
+
+            byte[] payload = testpacket.GetCompletePacket();
+            ClientSocket.Client.Send(payload);
         }
 
 

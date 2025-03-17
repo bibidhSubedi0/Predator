@@ -2,6 +2,8 @@
 using Predator.CoreEngine.Players;
 using Predator.CoreEngine.graphedBoard;
 using System.Threading;
+using System.Timers;
+using System.Windows.Documents;
 
 namespace Predator.GameApp
 {
@@ -81,6 +83,37 @@ namespace Predator.GameApp
         }
         public void MoveTiger(int from, int to){
             _game.NotifyTigerMove(from, to);
+        }
+
+        public void UpdateStateExplicit(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        {
+            _game.turn = TurnServer;
+            _game.avilableGoats = RemGoatsServer;
+
+            //
+            Tiger[] temptigers = new Tiger[4];
+
+            for (int i = 0; i < temptigers.Length; i++)
+            {
+                temptigers[i] = new Tiger(TigerPosServer[i]);
+            }
+            _game.tigers = temptigers;
+
+            Goat[] tempgoat = new Goat[20];
+            for(int i=0;i< tempgoat.Length; i++)
+            {
+                if (GoatPosServer[i] != 0) { 
+                tempgoat[i] = new Goat(GoatPosServer[i]);
+                }
+                else
+                {
+                    tempgoat[i] = null;
+                }
+            }
+
+            _game.goats = tempgoat;
+            GameStateUpdated?.Invoke();
+
         }
 
 

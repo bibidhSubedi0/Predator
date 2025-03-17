@@ -68,8 +68,8 @@ namespace UIPredator
             // LogMessage Invoke huda bittikai call LogMessageHandler
             _core.LogMessage += LogMessageHandler;
             networkManager.LogMessageNet += LogMessageHandler;
+            networkManager.NewMatchRecived += InitilizeGameState;
             networkManager.NewStateRecived += ProcessNewStates;
-
         }
 
         // Accept Username
@@ -180,12 +180,19 @@ namespace UIPredator
             Task.Run(() => networkManager.ReadPackets());
         }
 
-
-
-        void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        
+        void InitilizeGameState(bool TurnServer)
         {
             // New state recived from the server
             PTurn = TurnServer;
+        }
+
+        void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        {
+            
+            // Not working for now because server is not sending right info ATM
+            _core.UpdateStateExplicit(TigerPosServer, GoatPosServer, RemGoatsServer, TurnServer);
+
 
         }
 
