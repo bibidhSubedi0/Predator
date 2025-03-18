@@ -25,35 +25,60 @@ namespace Network
         int[] _GoatPositions =  new int[20];
         bool Turn = false; // True =  Triger
         int avilableGoats;
+        
+        Tiger[] temptigers;
+        Goat[] tempgoat;
 
+        public SemaphoreSlim C1MoveRecived = new SemaphoreSlim(0);
+        public SemaphoreSlim C2MoveRecived = new SemaphoreSlim(0);
 
         public HandelGame()
         {  
-
+            
         }
 
-        public void MainGame(Client c1, Client c2)
+
+        void UpdateObejects(int[] tigerPositions, int[] goatPositions, int remainingGoats)
         {
-
-            Console.WriteLine("Handling the Game for " + c1.Username + " and " + c2.Username);
-            // Initilize a new Game State for both of them
-            
-            Tiger[] temptigers = new Tiger[4];
-            int[] tigerPositions = { 1, 5, 21,20 };
-
+            // Construct tigers
+            temptigers = new Tiger[4];
             for (int i = 0; i < temptigers.Length; i++)
             {
                 temptigers[i] = new Tiger(tigerPositions[i]);
             }
 
-            Goat[] tempgoat = new Goat[20];
+
+            // Construct goats
+            tempgoat = new Goat[20];
             for (int i = 0; i < tempgoat.Length; i++)
             {
+                if (goatPositions[i] == 0)
+                {
                     tempgoat[i] = null;
+                }
+                else
+                {
+                    tempgoat[i] = new Goat(goatPositions[i]);
+                }
             }
 
-            int RemainingGoats = 20;
+            avilableGoats = remainingGoats;
+        }
 
+        public async Task MainGame(Client c1, Client c2)
+        {
+
+            Console.WriteLine("Handling the Game for " + c1.Username + " and " + c2.Username);
+            c1.NewStateRecived += C1Move;
+            c2.NewStateRecived += C2Move;
+
+
+            // Initilize a new Game State for both of them
+
+            int[] tigerPositions = { 1, 5, 21,20 };
+            int[] goatPosition = new int[20];
+            int remainingGoats = 20;
+            UpdateObejects(tigerPositions, goatPosition, remainingGoats);
 
 
 
@@ -80,13 +105,13 @@ namespace Network
              //Also send all the remaining Information
             c1.SendTigersInformation(temptigers);
             c1.SendGoatsInformation(tempgoat);
-            c1.SendNoOfAvilableGoats(RemainingGoats);
+            c1.SendNoOfAvilableGoats(avilableGoats);
             //c1.SendTurn(Turn);
 
 
             c2.SendTigersInformation(temptigers);
             c2.SendGoatsInformation(tempgoat);
-            c2.SendNoOfAvilableGoats(RemainingGoats);
+            c2.SendNoOfAvilableGoats(avilableGoats);
             //c2.SendTurn(!Turn);
 
 
@@ -95,7 +120,52 @@ namespace Network
             c1.InMatch = true;
             c1.MatchRequested = false;
 
+            // Now wait for moves from both the players
+            while (true)
+            {
+                // Wait for move from goat player i.e. c2
+                await C2MoveRecived.WaitAsync();
+
+                // TODO : Add validation
+                // Relay this state to both other client
+                c1.SendTigersInformation(temptigers);
+                c1.SendGoatsInformation(tempgoat);
+                c1.SendNoOfAvilableGoats(avilableGoats);
+                Console.WriteLine("Goat MOVED!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+
+
+                //Now wait for move from the tiger player i.e. c1
+                await C1MoveRecived.WaitAsync();
+
+                c1.SendTigersInformation(temptigers);
+                c1.SendGoatsInformation(tempgoat);
+                c1.SendNoOfAvilableGoats(avilableGoats);
+
+            }
+
+
+
+        }
+        public void C1Move(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        {
+            _TigerPositons = TigerPosServer;
+            _GoatPositions = GoatPosServer;
+            avilableGoats = RemGoatsServer;
+            Turn = TurnServer;
+            C1MoveRecived.Release();
+        }
+
+        // C2 Moves first
+        public void C2Move(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        {
+            _TigerPositons = TigerPosServer;
+            _GoatPositions = GoatPosServer;
+            avilableGoats = RemGoatsServer;
+            Turn = TurnServer;
+            C2MoveRecived.Release();
         }
 
     }
+
 }

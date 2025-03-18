@@ -54,6 +54,9 @@ namespace Network
         }
 
 
+        // If new packet it Sent from this this client, relay the state to the server for validationd
+        public event Action<int[], int[], int, bool> NewStateRecived;
+
 
         // Also need to actually store the data from the clients
         // For now lets just store the relevent informations and not build back the objects
@@ -112,15 +115,18 @@ namespace Network
                     case 2:
                         AvilableGoats = _pcaketReader.ReadRemainingGoats();
                         msg += "Remaining Gats";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                
                     case 3:
                         GoatPositions = _pcaketReader.ReadGoatPosition();
                         msg += "Goat Positions";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     case 4:
                         TigerPosition = _pcaketReader.ReadTigerPosition();
                         msg += "Tiger Position";
+                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     //New Match Requested by the user
                     case 5:

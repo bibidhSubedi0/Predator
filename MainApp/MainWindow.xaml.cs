@@ -191,7 +191,7 @@ namespace UIPredator
         {
             
             // Not working for now because server is not sending right info ATM
-            _core.UpdateStateExplicit(TigerPosServer, GoatPosServer, RemGoatsServer, TurnServer);
+            _core.UpdateStateExplicit(TigerPosServer, GoatPosServer, RemGoatsServer, false);
 
 
         }
