@@ -65,6 +65,7 @@ namespace Network
         int[] GoatPositions;
         int[] TigerPosition;
 
+        bool[] ReciveCheck = new bool[3];
 
         public Client(TcpClient client)
         {
@@ -89,6 +90,12 @@ namespace Network
             ClientSocket.Client.Send(payload);
 
             _isConnected = true;
+
+            // ---
+            for(int i=0;i<ReciveCheck.Length;i++)
+            {
+                ReciveCheck[i] = false;
+            }
         }
 
         public void HandelClient()
@@ -115,18 +122,21 @@ namespace Network
                     case 2:
                         AvilableGoats = _pcaketReader.ReadRemainingGoats();
                         msg += "Remaining Gats";
-                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
+                        ReciveCheck[0] = true;
+                        // --- NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                
                     case 3:
                         GoatPositions = _pcaketReader.ReadGoatPosition();
                         msg += "Goat Positions";
-                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
+                        ReciveCheck[1] = true;
+                        // --- NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     case 4:
                         TigerPosition = _pcaketReader.ReadTigerPosition();
                         msg += "Tiger Position";
-                        NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
+                        ReciveCheck[2] = true;
+                        // ---  NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                         break;
                     //New Match Requested by the user
                     case 5:
@@ -141,7 +151,15 @@ namespace Network
                         break;
 
                 }
-                
+                if (ReciveCheck[0] == true && ReciveCheck[1] == true && ReciveCheck[2] == true)
+                {
+                    NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
+                    for (int i = 0; i < ReciveCheck.Length; i++)
+                    {
+                        ReciveCheck[i] = false;
+                    }
+                }
+
                 Console.WriteLine("Data Recived from client: "+ Username+ "  : "+ msg);
             }
         }

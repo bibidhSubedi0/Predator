@@ -12,6 +12,7 @@ using Predator.CoreEngine.graphedBoard;
 using static System.Net.Mime.MediaTypeNames;
 using PredatorApp.Net;
 using Network;
+using System.Threading.Tasks;
 
 namespace UIPredator
 {
@@ -142,8 +143,10 @@ namespace UIPredator
 
 
         // Now everytime the game is updated send all the relevent information to the server
-        private void SendPacketsToServer()
+        private async Task SendPacketsToServer()
         {
+
+            await Task.Delay(100);
             Tiger[] NewTigersInfo = _core.GetTigers();
             Goat[] NewGoatInfo = _core.GetGoats();
             int NewAvilableGoats = _core.GetAvailableGoats();
@@ -159,6 +162,8 @@ namespace UIPredator
                      *  3 -> all the aviable goats Goat[] 
                      *  4 -> Tiger position Tiger[]
                      */
+
+                    
 
                     networkManager.SendGoatsInformation(NewGoatInfo);
                     networkManager.SendTurn(turn);

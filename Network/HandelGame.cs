@@ -26,11 +26,13 @@ namespace Network
         bool Turn = false; // True =  Triger
         int avilableGoats;
         
+        
         Tiger[] temptigers;
         Goat[] tempgoat;
 
         public SemaphoreSlim C1MoveRecived = new SemaphoreSlim(0);
         public SemaphoreSlim C2MoveRecived = new SemaphoreSlim(0);
+
 
         public HandelGame()
         {  
@@ -50,7 +52,7 @@ namespace Network
 
             // Construct goats
             tempgoat = new Goat[20];
-            for (int i = 0; i < tempgoat.Length; i++)
+            for (int i = 0; i < goatPositions.Length; i++)
             {
                 if (goatPositions[i] == 0)
                 {
@@ -58,6 +60,7 @@ namespace Network
                 }
                 else
                 {
+                    Console.WriteLine("Fuck my life");
                     tempgoat[i] = new Goat(goatPositions[i]);
                 }
             }
@@ -75,7 +78,7 @@ namespace Network
 
             // Initilize a new Game State for both of them
 
-            int[] tigerPositions = { 1, 5, 21,20 };
+            int[] tigerPositions = { 1, 15, 21,20 };
             int[] goatPosition = new int[20];
             int remainingGoats = 20;
             UpdateObejects(tigerPositions, goatPosition, remainingGoats);
@@ -124,16 +127,39 @@ namespace Network
             while (true)
             {
                 // Wait for move from goat player i.e. c2
+
+
+                // This decrements the count of the semaphore!, so it should work
                 await C2MoveRecived.WaitAsync();
 
                 // TODO : Add validation
                 // Relay this state to both other client
+
+                UpdateObejects(_TigerPositons, _GoatPositions, avilableGoats);
+
+
+                foreach (var g in tempgoat)
+                {
+                    if (g != null) { 
+                    Console.WriteLine("--------------------------- " + g.position);
+                    }
+                    {
+                        Console.WriteLine("--------------------------- " + 0);
+                    }
+                }
+
                 c1.SendTigersInformation(temptigers);
                 c1.SendGoatsInformation(tempgoat);
                 c1.SendNoOfAvilableGoats(avilableGoats);
+
+                //Console.WriteLine("Check goats");
+                //foreach(int i in tempgoat)
+
+                c2.SendTigersInformation(temptigers);
+                c2.SendGoatsInformation(tempgoat);
+                c2.SendNoOfAvilableGoats(avilableGoats);
                 Console.WriteLine("Goat MOVED!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
-
+            
 
                 //Now wait for move from the tiger player i.e. c1
                 await C1MoveRecived.WaitAsync();
@@ -163,6 +189,13 @@ namespace Network
             _GoatPositions = GoatPosServer;
             avilableGoats = RemGoatsServer;
             Turn = TurnServer;
+
+            // Only rleases when all 3 have been recived
+            //foreach(var g in GoatPosServer)
+            //{
+            //    Console.WriteLine("--------------------------- " + g);
+            //}
+
             C2MoveRecived.Release();
         }
 
