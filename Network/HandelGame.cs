@@ -130,23 +130,12 @@ namespace Network
 
 
                 // This decrements the count of the semaphore!, so it should work
-                await C2MoveRecived.WaitAsync();
+                var completedTask = await Task.WhenAny(C2MoveRecived.WaitAsync(), C1MoveRecived.WaitAsync());
 
                 // TODO : Add validation
                 // Relay this state to both other client
 
                 UpdateObejects(_TigerPositons, _GoatPositions, avilableGoats);
-
-
-                foreach (var g in tempgoat)
-                {
-                    if (g != null) { 
-                    Console.WriteLine("--------------------------- " + g.position);
-                    }
-                    {
-                        Console.WriteLine("--------------------------- " + 0);
-                    }
-                }
 
                 c1.SendTigersInformation(temptigers);
                 c1.SendGoatsInformation(tempgoat);
@@ -155,18 +144,22 @@ namespace Network
                 //Console.WriteLine("Check goats");
                 //foreach(int i in tempgoat)
 
+                //c2.SendTigersInformation(temptigers);
+                //c2.SendGoatsInformation(tempgoat);
+                //c2.SendNoOfAvilableGoats(avilableGoats);
+                //Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+
+
+                //Now wait for move from the tiger player i.e. c1
+                
+
+
+                //UpdateObejects(_TigerPositons, _GoatPositions, avilableGoats);
+
                 c2.SendTigersInformation(temptigers);
                 c2.SendGoatsInformation(tempgoat);
                 c2.SendNoOfAvilableGoats(avilableGoats);
-                Console.WriteLine("Goat MOVED!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            
-
-                //Now wait for move from the tiger player i.e. c1
-                await C1MoveRecived.WaitAsync();
-
-                c1.SendTigersInformation(temptigers);
-                c1.SendGoatsInformation(tempgoat);
-                c1.SendNoOfAvilableGoats(avilableGoats);
+                Console.WriteLine("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
 
             }
 

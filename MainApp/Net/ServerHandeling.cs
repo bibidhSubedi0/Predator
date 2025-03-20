@@ -95,7 +95,7 @@ namespace PredatorApp.Net
 
 
 
-                LogMessageNet?.Invoke("Server Message : "+msg);
+                //LogMessageNet?.Invoke("Server Message : "+msg);
                 _packetReader.FlushNetworkStream();
             }
 

@@ -100,12 +100,13 @@ namespace UIPredator
         // Connect To Server
         private void ConnectToNetworkButtonClick(object sender, RoutedEventArgs e)
         {
-            if (!networkManager._isConnected) { 
-                if (string.IsNullOrEmpty(_Username))
-                {
-                    NetworkStatusText.Text = "Enter a Valid Username!";
-                    return;
-                }
+            if (!networkManager._isConnected) {
+                //if (string.IsNullOrEmpty(_Username))
+                //{
+                //    NetworkStatusText.Text = "Enter a Valid Username!";
+                //    return;
+                //}
+                _Username = "lol";
 
                 // Update UI to show connection attempt
                 NetworkStatusText.Text = "Status: Connecting to Server...";
@@ -189,7 +190,9 @@ namespace UIPredator
         void InitilizeGameState(bool TurnServer)
         {
             // New state recived from the server
-            PTurn = TurnServer;
+            PTurn = TurnServer; // first turn assigned by server
+
+            _core.SetTurn(!PTurn);
         }
 
         void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
@@ -233,7 +236,7 @@ namespace UIPredator
 
 
                     // Now set the game staes according to the server
-                    _core.SetTurn(PTurn);
+                    //_core.SetTurn(PTurn);
 
                     // Strart the actual game loop
                     await _core.StartGameAsync();
@@ -290,8 +293,11 @@ namespace UIPredator
             {
                 return;
             }
+            if (PTurn) { 
 
-            if (PTurn == _core.GetTurn()) {
+            LogMessageHandler("When i pressed the game move was : " + _core.GetTurn());
+
+
                 // Get the mouse click position relative to the board canvas
                 Point clickPosition = e.GetPosition(BoardCanvas);
 
@@ -338,10 +344,8 @@ namespace UIPredator
                     }
                 }
             }
-            else
-            {
+            _core.SetTurn(!_core.GetTurn());
 
-            }
         }
 
 

@@ -160,7 +160,7 @@ namespace Network
                     }
                 }
 
-                Console.WriteLine("Data Recived from client: "+ Username+ "  : "+ msg);
+                //Console.WriteLine("Data Recived from client: "+ Username+ "  : "+ msg);
             }
         }
 
