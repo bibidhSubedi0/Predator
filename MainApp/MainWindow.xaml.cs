@@ -52,9 +52,6 @@ namespace UIPredator
             InitGame();
 
         }
-
-
-        // Iitilizize the core controller to the a new game!
         private void InitGame()
         {
             InitializeComponent();
@@ -72,8 +69,6 @@ namespace UIPredator
             networkManager.NewMatchRecived += InitilizeGameState;
             networkManager.NewStateRecived += ProcessNewStates;
         }
-
-        // Accept Username
         private void SubmitUsernameButtonClick(object sender, RoutedEventArgs e)
         {
             string username = UsernameTextBox.Text.Trim();
@@ -95,9 +90,6 @@ namespace UIPredator
                 SubmitUsernameButton.IsEnabled = false;
             }
         }
-
-
-        // Connect To Server
         private void ConnectToNetworkButtonClick(object sender, RoutedEventArgs e)
         {
             if (!networkManager._isConnected) {
@@ -141,75 +133,12 @@ namespace UIPredator
             }
 
         }
-
-
-        // Now everytime the game is updated send all the relevent information to the server
-        private async Task SendPacketsToServer()
-        {
-
-            await Task.Delay(100);
-            Tiger[] NewTigersInfo = _core.GetTigers();
-            Goat[] NewGoatInfo = _core.GetGoats();
-            int NewAvilableGoats = _core.GetAvailableGoats();
-            bool turn = _core.GetTurn();
-
-            try { 
-            if (networkManager._isConnected)
-                {
-                    // Send all the relevent infromations
-                    /*
-                     *  1 -> Turn
-                     *  2 -> No. of avilable goats
-                     *  3 -> all the aviable goats Goat[] 
-                     *  4 -> Tiger position Tiger[]
-                     */
-
-                    
-
-                    networkManager.SendGoatsInformation(NewGoatInfo);
-                    networkManager.SendTurn(turn);
-                    networkManager.SendTigersInformation(NewTigersInfo);
-                    networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
-
-                }
-            }
-            finally
-            {
-
-            }
-        }
-
-        // Keep Reading packets from the server
-        private void ReadPacketsFromTheServer()
-        {
-            // Keep reding while connected
-            Task.Run(() => networkManager.ReadPackets());
-        }
-
-        
-        void InitilizeGameState(bool TurnServer)
-        {
-            // New state recived from the server
-            PTurn = TurnServer; // first turn assigned by server
-
-            _core.SetTurn(!PTurn);
-        }
-
-        void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
-        {
-            
-            // Not working for now because server is not sending right info ATM
-            _core.UpdateStateExplicit(TigerPosServer, GoatPosServer, RemGoatsServer, false);
-
-
-        }
-
-        // On strat button click -> This function starts asynchronouly
         private async void StartGameButtonClick(object sender, RoutedEventArgs e)
         {
             // Do not start the game if not connected to the server!
 
-            if (networkManager._isConnected) {
+            if (networkManager._isConnected)
+            {
                 // Ask for match from the server!
 
 
@@ -261,8 +190,6 @@ namespace UIPredator
                 GameStatusText.Text = "Please Connect to the Server!";
             }
         }
-
-        // Prints the Loged Message to the UI
         private void LogMessageHandler(string message)
         {
             Dispatcher.Invoke(() =>
@@ -271,9 +198,6 @@ namespace UIPredator
                 LogTextBox.ScrollToEnd();
             });
         }
-
-
-        // Well, as the name suggests, Updates the UI, mostly based on the gamestatuschanged event
         private void UpdateUI()
         {
             Dispatcher.Invoke(() =>
@@ -286,18 +210,70 @@ namespace UIPredator
         }
 
 
-        // Helper to UpdateUI -> There is a bug with placements but not harmful enough for me to fix it
+        
+        private async Task SendPacketsToServer()
+        {
+
+            await Task.Delay(100);
+            Tiger[] NewTigersInfo = _core.GetTigers();
+            Goat[] NewGoatInfo = _core.GetGoats();
+            int NewAvilableGoats = _core.GetAvailableGoats();
+            bool turn = _core.GetTurn();
+
+            try { 
+            if (networkManager._isConnected)
+                {
+                    // Send all the relevent infromations
+                    /*
+                     *  1 -> Turn
+                     *  2 -> No. of avilable goats
+                     *  3 -> all the aviable goats Goat[] 
+                     *  4 -> Tiger position Tiger[]
+                     */
+
+                    
+
+                    networkManager.SendGoatsInformation(NewGoatInfo);
+                    networkManager.SendTurn(turn);
+                    networkManager.SendTigersInformation(NewTigersInfo);
+                    networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
+
+                }
+            }
+            finally
+            {
+
+            }
+        }
+
+        // Called after connecting to network
+        private void ReadPacketsFromTheServer()
+        {
+            // Keep reding while connected
+            Task.Run(() => networkManager.ReadPackets());
+        }
+        
+        // Netwrok manager bata naya game ko confirmation aya
+        void InitilizeGameState(bool TurnServer)
+        {
+            // New state recived from the server
+            PTurn = TurnServer; // first turn assigned by server
+
+            _core.SetTurn(!PTurn);
+        }
+
+        // Netwrok manager bata naya state aya
+        void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        {
+            _core.UpdateStateExplicit(TigerPosServer, GoatPosServer, RemGoatsServer, false);
+        }
+
         private void BoardCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if(!_core.GetGameStatus())
             {
                 return;
             }
-            if (PTurn) { 
-
-            LogMessageHandler("When i pressed the game move was : " + _core.GetTurn());
-
-
                 // Get the mouse click position relative to the board canvas
                 Point clickPosition = e.GetPosition(BoardCanvas);
 
@@ -308,16 +284,11 @@ namespace UIPredator
                 int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
 
 
-                // Call game logic based on the current turn
-                if (!_core.GetTurn()) // Goat's turn
+                if (!_core.GetTurn())
                 {
                     if(_core.GetAvailableGoats() >0)
                     {
                         _core.PlaceGoat(boardPosition);
-                        // Send The current board state to the network
-                        SendPacketsToServer();
-
-                    
                     }
                     else if(_selectedGoatPosition ==-1)
                     {
@@ -327,29 +298,25 @@ namespace UIPredator
                     {
                         _core.MoveGoat(_selectedGoatPosition, boardPosition);
                         _selectedGoatPosition = -1;
-                        SendPacketsToServer();
                     }
                 }
-                else // Tiger's turn
+                else
                 {
                     if (_selectedTigerPosition == -1)
                     {
-                        _selectedTigerPosition = boardPosition; // First click: select tiger
+                        _selectedTigerPosition = boardPosition;
                     }
                     else
                     {
-                        _core.MoveTiger(_selectedTigerPosition, boardPosition); // Second click: move
-                        _selectedTigerPosition = -1; // Reset selection
-                        SendPacketsToServer();
+                        _core.MoveTiger(_selectedTigerPosition, boardPosition);
+                        _selectedTigerPosition = -1;
                     }
+                
                 }
-            }
-            _core.SetTurn(!_core.GetTurn());
 
         }
 
 
-        // Helper to UpdateUI -> Draws the board's graph
         private void DrawBoard()
         {
             var background = new Rectangle
@@ -405,9 +372,6 @@ namespace UIPredator
             DrawEdge(1, 3, 0, 2);  // 9-3
             DrawEdge(0, 2, 1, 3);  // 3-9
         }
-
-        
-        // Helper to DrawBoard -> To draw the edges of the grpah
         private void DrawEdge(int startRow, int startCol, int endRow, int endCol)
         {
             double x1 = startCol * CellSize + CellSize / 2;
@@ -416,9 +380,6 @@ namespace UIPredator
             double y2 = endRow * CellSize + CellSize / 2;
             DrawLine(x1, y1, x2, y2);
         }
-
-
-        // Helper to DdawEdge -> To draw the lines
         private void DrawLine(double x1, double y1, double x2, double y2)
         {
             Line line = new Line()
@@ -432,9 +393,6 @@ namespace UIPredator
             };
             BoardCanvas.Children.Add(line);
         }
-
-
-        // Helper to UpdateUI -> To draw all the components of the game
         private void DrawComponents()
         {
             Board NewBoardInfo = _core.GetBoardState();
@@ -458,9 +416,6 @@ namespace UIPredator
                 }
             }
         }
-
-
-        // Helper to DrawCompoent -> To draw the circular figures
         private void DrawCircle(double x, double y, Brush color, int radius)
         {
             Ellipse ellipse = new Ellipse()
@@ -479,16 +434,10 @@ namespace UIPredator
             Canvas.SetTop(ellipse, y - radius);
             BoardCanvas.Children.Add(ellipse);
         }
-
-
-
-        // Convert grid (x,y) to board's position index [1,25] bit buggy, but mostly works
         private int ConvertGridToBoardPosition(int x, int y)
         {
             return (y * GridSize + x) +1;
         }
-
-        
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             _core.StopGame();

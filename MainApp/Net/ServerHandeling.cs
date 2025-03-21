@@ -22,23 +22,24 @@ namespace PredatorApp.Net
         bool turn;
         int AvilableGoats = 20;
         int[] GoatPositions = new int[20];
-        int[] TigerPosition = new int[] { 1, 5, 21, 25 };
-        string Message;
+        int[] TigerPosition = { 1, 5, 21, 25 };
+        string Message = String.Empty;
 
-        public event Action<int[], int[],int, bool> NewStateRecived;
-        public event Action<bool> NewMatchRecived;
-        public event Action<string> LogMessageNet;
+        public event Action<int[], int[], int, bool>? NewStateRecived;
+        public event Action<bool>? NewMatchRecived;
+        public event Action<string>? LogMessageNet;
         SemaphoreSlim MatchFound = new SemaphoreSlim(0);
         SemaphoreSlim UpdateFromServer = new SemaphoreSlim(0);
-
 
         public ServerHandeling()
         {
             _client = new TcpClient();
+            _packetbuilder = new PacketBuilder();
+            _packetReader = new PacketReader(_client.GetStream());
         }
 
-
-        public void ReadPackets() {
+        public void ReadPackets()
+        {
 
             LogMessageNet?.Invoke("Listining to server!");
 
@@ -90,7 +91,7 @@ namespace PredatorApp.Net
 
                 // Relay these info to the core game 
                 //NotifyStateUpdate();
-                
+
 
 
 
@@ -102,7 +103,8 @@ namespace PredatorApp.Net
         }
         public void ConnectToServer(string Username)
         {
-            if (!_isConnected) {
+            if (!_isConnected)
+            {
                 _Username = Username;
                 _client.Connect("127.0.0.1", 5000);
                 _isConnected = true;
@@ -135,7 +137,7 @@ namespace PredatorApp.Net
 
             // Check for confirmation form the server!
             await MatchFound.WaitAsync();
-            
+
         }
 
         // Packet Structure
@@ -166,7 +168,7 @@ namespace PredatorApp.Net
 
         public void SendNoOfAvilableGoats(int goats)
         {
-            
+
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(2);
             testpacket.WriteNumber4bytes(sizeof(int));
@@ -174,7 +176,7 @@ namespace PredatorApp.Net
 
             byte[] payload = testpacket.GetCompletePacket();
             _client.Client.Send(payload);
-            
+
         }
 
         public void SendGoatsInformation(Goat[] goats)
@@ -185,7 +187,7 @@ namespace PredatorApp.Net
             testpacket.WriteGoats(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
-            
+
             _client.Client.Send(payload);
         }
 
