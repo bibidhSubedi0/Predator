@@ -93,12 +93,11 @@ namespace UIPredator
         private void ConnectToNetworkButtonClick(object sender, RoutedEventArgs e)
         {
             if (!networkManager._isConnected) {
-                //if (string.IsNullOrEmpty(_Username))
-                //{
-                //    NetworkStatusText.Text = "Enter a Valid Username!";
-                //    return;
-                //}
-                _Username = "lol";
+                if (string.IsNullOrEmpty(_Username))
+                {
+                    NetworkStatusText.Text = "Enter a Valid Username!";
+                    return;
+                }
 
                 // Update UI to show connection attempt
                 NetworkStatusText.Text = "Status: Connecting to Server...";
@@ -152,8 +151,8 @@ namespace UIPredator
                 // Redraw the UI based on the new game
                 UpdateUI();
 
-                try
-                {
+                //try
+                //{
 
                     // General Stuff
                     GameOverOverlay.Visibility = Visibility.Collapsed;
@@ -168,22 +167,22 @@ namespace UIPredator
                     //_core.SetTurn(PTurn);
 
                     // Strart the actual game loop
-                    await _core.StartGameAsync();
-                }
+                    //await _core.StartGameAsync();
+                //}
 
                 // After/Regradless of completion of game Loop
-                finally
-                {
+                //finally
+                //{
 
-                    // More general stuff
-                    StartButton.IsEnabled = true;
-                    GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
-                    GameStatusText.Text = "Status: Not Started";
-                    GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
-                    GameOverText.Text = "Game Over!";
-                    GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
+                //    // More general stuff
+                //    StartButton.IsEnabled = true;
+                //    GameStatusText.Background = (Brush)new BrushConverter().ConvertFrom("#3B4252");
+                //    GameStatusText.Text = "Status: Not Started";
+                //    GameStatusText.Foreground = (Brush)new BrushConverter().ConvertFrom("#88C0D0");
+                //    GameOverText.Text = "Game Over!";
+                //    GameOverOverlay.Visibility = Visibility.Visible; // Show the overlay
 
-                }
+                //}
             }
             else
             {
@@ -210,39 +209,20 @@ namespace UIPredator
         }
 
 
-        
+
         private async Task SendPacketsToServer()
         {
-
-            await Task.Delay(100);
-            Tiger[] NewTigersInfo = _core.GetTigers();
-            Goat[] NewGoatInfo = _core.GetGoats();
-            int NewAvilableGoats = _core.GetAvailableGoats();
+            Tiger[] tigers = _core.GetTigers();
+            Goat[] goats = _core.GetGoats();
+            int availableGoats = _core.GetAvailableGoats();
             bool turn = _core.GetTurn();
 
-            try { 
             if (networkManager._isConnected)
-                {
-                    // Send all the relevent infromations
-                    /*
-                     *  1 -> Turn
-                     *  2 -> No. of avilable goats
-                     *  3 -> all the aviable goats Goat[] 
-                     *  4 -> Tiger position Tiger[]
-                     */
-
-                    
-
-                    networkManager.SendGoatsInformation(NewGoatInfo);
-                    networkManager.SendTurn(turn);
-                    networkManager.SendTigersInformation(NewTigersInfo);
-                    networkManager.SendNoOfAvilableGoats(NewAvilableGoats);
-
-                }
-            }
-            finally
             {
-
+                await networkManager.SendGoatsInformation(goats);
+                await networkManager.SendTigersInformation(tigers);
+                await networkManager.SendNoOfAvilableGoats(availableGoats);
+                await networkManager.SendTurn(turn);
             }
         }
 
@@ -253,7 +233,7 @@ namespace UIPredator
             Task.Run(() => networkManager.ReadPackets());
         }
         
-        // Netwrok manager bata naya game ko confirmation aya
+        // Netwrok manager bata naya game ko confirmation aya, its only task is to set the turn assigned by the server
         void InitilizeGameState(bool TurnServer)
         {
             // New state recived from the server
@@ -263,59 +243,81 @@ namespace UIPredator
         }
 
         // Netwrok manager bata naya state aya
-        void ProcessNewStates(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
+        void ProcessNewStates(int[] tigerPos, int[] goatPos, int remGoats, bool turn)
         {
-            _core.UpdateStateExplicit(TigerPosServer, GoatPosServer, RemGoatsServer, false);
+            Dispatcher.Invoke(() =>
+            {
+                _core.UpdateStateExplicit(tigerPos, goatPos, remGoats, false);
+                UpdateUI();
+            });
         }
 
-        private void BoardCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+
+        bool turn = false;
+        private async void BoardCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if(!_core.GetGameStatus())
+            if (!networkManager._isConnected)
             {
                 return;
             }
-                // Get the mouse click position relative to the board canvas
-                Point clickPosition = e.GetPosition(BoardCanvas);
-
-            
-                // Map the coordinates to your game's grid position
-                int gridX = (int)(clickPosition.X / CellSize);
-                int gridY = (int)(clickPosition.Y / CellSize);
-                int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
+            LogMessageHandler("Current game turn is : " + _core.GetTurn());
+            Point clickPosition = e.GetPosition(BoardCanvas);
+            int gridX = (int)(clickPosition.X / CellSize);
+            int gridY = (int)(clickPosition.Y / CellSize);
+            int boardPosition = ConvertGridToBoardPosition(gridX, gridY);
 
 
-                if (!_core.GetTurn())
+
+            // if ptrun == true ALways move only tiger no matter what
+            if (PTurn)
+            {
+                // Only move if it is myturn
+
+                if (_selectedTigerPosition == -1)
                 {
-                    if(_core.GetAvailableGoats() >0)
-                    {
-                        _core.PlaceGoat(boardPosition);
-                    }
-                    else if(_selectedGoatPosition ==-1)
-                    {
-                        _selectedGoatPosition = boardPosition;
-                    }
-                    else
-                    {
-                        _core.MoveGoat(_selectedGoatPosition, boardPosition);
-                        _selectedGoatPosition = -1;
-                    }
+                    _selectedTigerPosition = boardPosition;
                 }
                 else
                 {
-                    if (_selectedTigerPosition == -1)
-                    {
-                        _selectedTigerPosition = boardPosition;
-                    }
-                    else
-                    {
-                        _core.MoveTiger(_selectedTigerPosition, boardPosition);
-                        _selectedTigerPosition = -1;
-                    }
-                
+                    _core.MoveTiger(_selectedTigerPosition, boardPosition);
+                    _selectedTigerPosition = -1;
+
+                    //Task.Run(() =>SendPacketsToServer());
+                    await SendPacketsToServer();
+                    UpdateUI();
                 }
+            }
+
+            // if pturn == false always move only goat no matter what
+            if (!PTurn)
+            {
+                // only move if it is myturn
+
+                if(_core.GetAvailableGoats() >0)
+                {
+                    _core.PlaceGoat(boardPosition);
+                    await SendPacketsToServer();
+                    UpdateUI();
+                }
+                else if(_selectedGoatPosition ==-1)
+                {
+                    _selectedGoatPosition = boardPosition;
+                        
+                }
+                else
+                {
+                    _core.MoveGoat(_selectedGoatPosition, boardPosition);
+                    _selectedGoatPosition = -1;
+                    //Task.Run(() => SendPacketsToServer());
+                    await SendPacketsToServer();
+                    UpdateUI();
+                }
+            }
 
         }
 
+
+        
 
         private void DrawBoard()
         {

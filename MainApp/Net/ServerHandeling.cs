@@ -34,8 +34,8 @@ namespace PredatorApp.Net
         public ServerHandeling()
         {
             _client = new TcpClient();
-            _packetbuilder = new PacketBuilder();
-            _packetReader = new PacketReader(_client.GetStream());
+            //_packetbuilder = new PacketBuilder();
+            //_packetReader = new PacketReader(_client.GetStream());
         }
 
         public void ReadPackets()
@@ -155,7 +155,7 @@ namespace PredatorApp.Net
             _client.Client.Send(payload);
         }
 
-        public void SendTurn(bool turn)
+        public async Task SendTurn(bool turn)
         {
             var connectPacket = new PacketBuilder();
             connectPacket.WriteOPCode(1);
@@ -163,10 +163,10 @@ namespace PredatorApp.Net
             connectPacket.WriteBooleanValue(turn);
 
             byte[] payload = connectPacket.GetCompletePacket();
-            _client.Client.Send(payload);
+            await _client.Client.SendAsync(payload, SocketFlags.None);
         }
 
-        public void SendNoOfAvilableGoats(int goats)
+        public async Task SendNoOfAvilableGoats(int goats)
         {
 
             var testpacket = new PacketBuilder();
@@ -175,11 +175,11 @@ namespace PredatorApp.Net
             testpacket.WriteNumber4bytes(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
-            _client.Client.Send(payload);
+            await _client.Client.SendAsync(payload, SocketFlags.None); // Async send
 
         }
 
-        public void SendGoatsInformation(Goat[] goats)
+        public async Task SendGoatsInformation(Goat[] goats)
         {
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(3);
@@ -187,11 +187,10 @@ namespace PredatorApp.Net
             testpacket.WriteGoats(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
-
-            _client.Client.Send(payload);
+            await _client.Client.SendAsync(payload, SocketFlags.None); // Async send
         }
 
-        public void SendTigersInformation(Tiger[] tigers)
+        public async Task SendTigersInformation(Tiger[] tigers)
         {
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(4);
@@ -199,7 +198,7 @@ namespace PredatorApp.Net
             testpacket.WriteTigers(tigers);
 
             byte[] payload = testpacket.GetCompletePacket();
-            _client.Client.Send(payload);
+            await _client.Client.SendAsync(payload, SocketFlags.None);
         }
 
 

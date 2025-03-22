@@ -12,7 +12,7 @@ namespace Predator.CoreEngine.Game
         public bool turn = false;
         public int avilableGoats = 20;
         public Goat[] goats = new Goat[20];
-        public bool GameOn = false;
+        
 
 
         // Async Input Handling
@@ -96,11 +96,7 @@ namespace Predator.CoreEngine.Game
         }
 
         // Notifiers to the blocking calls from the main loop
-        public void NotifyGoatPlacement(int position)
-        {
-            _pendingGoatPosition = position;
-            _goatPlacementWaiter.Release();
-        }
+
         public void NotifyGoatMove(int from, int to)
         {
             _pendingGoatMove = (from, to);
@@ -114,67 +110,48 @@ namespace Predator.CoreEngine.Game
 
 
         // Completly handles the goat's turn:  decides to place or move -> waits for input -> Places the component -> Changes the required stuff in the board
-        private async Task HandleGoatTurn(CancellationToken ct)
+        public void PutGoatInBoard(int position)
         {
+            // Place goats
             if (avilableGoats > 0)
             {
-                LogMessage?.Invoke("Place a goat!");
+                LogMessage?.Invoke("Placing a goat!");
 
-                // Wait for UI input from a non async function 
-                await _goatPlacementWaiter.WaitAsync(ct);
 
                 // Validate position
-                if (board.GetComponentPlacement()[_pendingGoatPosition] == null)
+                if (board.GetComponentPlacement()[position] == null)
                 {
-                    Goat goat = new Goat(_pendingGoatPosition);
+                    Goat goat = new Goat(position);
                     goats[20 - avilableGoats] = goat;
-                    board.putComponentInBoard(goat, _pendingGoatPosition);
+                    board.putComponentInBoard(goat, position);
                     avilableGoats--;
                 }
             }
-            else
-            {
-                LogMessage?.Invoke("Move a goat!");
-
-                // Wait for UI input
-                await _goatMovementWaiter.WaitAsync(ct);
-
-                var (from, to) = _pendingGoatMove;
+        }
+        public void MoveGoat(int from,int to)
+        { 
+            
+                LogMessage?.Invoke("Moving  a goat!");
                 Goat goat = goats.FirstOrDefault(g => g.position == from);
 
                 if (goat != null && board.moveValidation(goat, to, from))
                 {
-                    // Update tiger position
                     goat.position = to;
                     board.putComponentInBoard(goat, to);
                     board.removeComponentFromBoard(from);
                 }
 
-            }
+            
         }
+        
+
+
 
         // Completly handles the goat's turn: waits for input -> Places the component -> Changes the required stuff in the board
-        private async Task HandleTigerTurn(CancellationToken ct)
+        public void MoveTiger(int from, int to)
         {
-            LogMessage?.Invoke("Move a tiger!");
-
-            try { 
-                await _tigerMoveWaiter.WaitAsync(ct);
-            }
-            catch (OperationCanceledException)
-            {
-                LogMessage?.Invoke("Tiger turn was cancelled.");
-                throw; // Re-throw to exit the game loop
-            }
-            catch (Exception ex)
-            {
-                LogMessage?.Invoke($"Error in HandleTigerTurn: {ex.Message}");
-                LogMessage?.Invoke($"Stack Trace: {ex.StackTrace}");
-                throw; // Re-throw to exit the game loop
-            }
-
-            // Process Tiger's move
-            var (from, to) = _pendingTigerMove;
+            LogMessage?.Invoke("Moving a tiger!");
+            
             Tiger tiger = tigers.FirstOrDefault(t => t.position == from);
 
             if (tiger != null && board.moveValidation(tiger, to,from))
@@ -209,59 +186,7 @@ namespace Predator.CoreEngine.Game
             }
 
         }
-
-
-        // Runs the main loop and uses the Semaphores to wait for user input
-        public async Task inGame(CancellationToken cancellationToken)
-        {
-            LogMessage?.Invoke("Stared the game loop!");
-            GameOn = true;
-            
-            try { 
-            // Main Game Loop
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    LogMessage?.Invoke($"Current turn: {(turn ? "Tiger" : "Goat")}");
-
-                    if (turn) // turn true = tiger's turn
-                    {
-                        await HandleTigerTurn(cancellationToken);
-                        }
-                    else
-                    {
-                        await HandleGoatTurn(cancellationToken);
-                    }
-
-                    turn = !turn;
-
-                    // NOW THE BOARD HAS CHANGED -> MAKE UI RERENDER THE WHOLE BOARD AGAIN
-                    GameStateChanged?.Invoke();
-
-                    if (checkGameOver())
-                    {
-                        GameOn = false;
-                        _goatMovementWaiter.Release();
-                        _goatPlacementWaiter.Release();
-                        _tigerMoveWaiter.Release();
-
-                        break;
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                LogMessage?.Invoke("Game loop was cancelled.");
-            }
-            catch (Exception ex)
-            {
-                LogMessage?.Invoke($"Error in game loop: {ex.Message}");
-            }
-            finally
-            {
-                LogMessage?.Invoke("Game loop exited.");
-            }
-
-        }
+        
 
 
         // Relays to the Core Controller and UI
@@ -290,10 +215,10 @@ namespace Predator.CoreEngine.Game
             return avilableGoats;
         }
 
-        public bool GetGameStatus()
-        {
-            return GameOn;
-        }
+        //public bool GetGameStatus()
+        //{
+        //    return GameOn;
+        //}
         
 
     }

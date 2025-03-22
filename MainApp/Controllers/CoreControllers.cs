@@ -45,11 +45,11 @@ namespace Predator.GameApp
 
             try
             {
-                Task GameTask = _game.inGame(_cts.Token);
+                //Task GameTask = _game.inGame(_cts.Token);
 
                 // Blocking call to let the game complete
-                await GameTask;
-                _cts.Cancel();
+                //await GameTask;
+                //_cts.Cancel();
                 LogMessage?.Invoke("Game loop completed successfully.");
             }
             catch (OperationCanceledException)
@@ -69,7 +69,12 @@ namespace Predator.GameApp
         // Take input from UI and pass it to the game loop
         public void PlaceGoat(int position)
         {
-            _game.NotifyGoatPlacement(position);
+            _game.PutGoatInBoard(position);
+        }
+
+        public void MoveGoat(int from, int to)
+        {
+            _game.MoveGoat(from,to);
         }
         
         public void SetTurn(bool turn)
@@ -77,12 +82,8 @@ namespace Predator.GameApp
             _game.turn = turn;
         }
         
-        public void MoveGoat(int from, int to)
-        {
-            _game.NotifyGoatMove(from, to);
-        }
         public void MoveTiger(int from, int to){
-            _game.NotifyTigerMove(from, to);
+            _game.MoveTiger(from, to);
         }
 
         public void UpdateStateExplicit(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
@@ -148,9 +149,9 @@ namespace Predator.GameApp
             return _game.GetTurn();
         }
 
-        public bool GetGameStatus()
-        {
-            return _game.GetGameStatus();
-        }
+        //public bool GetGameStatus()
+        //{
+        //    return _game.GetGameStatus();
+        //}
     }
 }

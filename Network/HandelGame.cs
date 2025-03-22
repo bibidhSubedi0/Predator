@@ -60,7 +60,6 @@ namespace Network
                 }
                 else
                 {
-                    Console.WriteLine("Fuck my life");
                     tempgoat[i] = new Goat(goatPositions[i]);
                 }
             }
@@ -102,20 +101,18 @@ namespace Network
             ConfirmationPacket2.WriteBooleanValue(!Turn);
             byte[] payload2= ConfirmationPacket2.GetCompletePacket();
             c1.ClientSocket.Client.Send(payload2);
-            
+
             // I probably need some kind of handshake here!? IDK, I do not know network programming that good yet
 
-             //Also send all the remaining Information
-            c1.SendTigersInformation(temptigers);
-            c1.SendGoatsInformation(tempgoat);
-            c1.SendNoOfAvilableGoats(avilableGoats);
-            //c1.SendTurn(Turn);
-
-
-            c2.SendTigersInformation(temptigers);
-            c2.SendGoatsInformation(tempgoat);
-            c2.SendNoOfAvilableGoats(avilableGoats);
-            //c2.SendTurn(!Turn);
+            //Also send all the remaining Information
+            await Task.WhenAll(
+                c1.SendTigersInformation(temptigers),
+                c1.SendGoatsInformation(tempgoat),
+                c1.SendNoOfAvilableGoats(avilableGoats),
+                c2.SendTigersInformation(temptigers),
+                c2.SendGoatsInformation(tempgoat),
+                c2.SendNoOfAvilableGoats(avilableGoats)
+            );
 
 
             c2.InMatch = true;
@@ -123,51 +120,62 @@ namespace Network
             c1.InMatch = true;
             c1.MatchRequested = false;
 
+            // Now the initial statess
+
+
+
             // Now wait for moves from both the players
-            while (true)
-            {
-                // Wait for move from goat player i.e. c2
+            // Modified MainGame loop
 
-
-                // This decrements the count of the semaphore!, so it should work
-                var completedTask = await Task.WhenAny(C2MoveRecived.WaitAsync(), C1MoveRecived.WaitAsync());
-
-                // TODO : Add validation
-                // Relay this state to both other client
-
-                UpdateObejects(_TigerPositons, _GoatPositions, avilableGoats);
-
-                c1.SendTigersInformation(temptigers);
-                c1.SendGoatsInformation(tempgoat);
-                c1.SendNoOfAvilableGoats(avilableGoats);
-
-                //Console.WriteLine("Check goats");
-                //foreach(int i in tempgoat)
-
-                //c2.SendTigersInformation(temptigers);
-                //c2.SendGoatsInformation(tempgoat);
-                //c2.SendNoOfAvilableGoats(avilableGoats);
-                //Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-
-
-                //Now wait for move from the tiger player i.e. c1
-                
-
-
-                //UpdateObejects(_TigerPositons, _GoatPositions, avilableGoats);
-
-                c2.SendTigersInformation(temptigers);
-                c2.SendGoatsInformation(tempgoat);
-                c2.SendNoOfAvilableGoats(avilableGoats);
-                Console.WriteLine("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
-
-            }
-
-
+            await Task.Run(() => GamePlay(c1, c2));
 
         }
+
+        private bool _isPlayer1Turn = false;
+        public async Task GamePlay(Client c1, Client c2)
+        {
+            
+                while (true)
+                {
+                    Console.WriteLine("Waiting for move from " + _isPlayer1Turn);
+                    // Wait for ONLY the current player's move
+                    if (_isPlayer1Turn)
+                    {
+                        await C1MoveRecived.WaitAsync();
+                    }
+                    else
+                    {
+                        await C2MoveRecived.WaitAsync();
+                    }
+
+                    // Update game state
+                    UpdateObejects(_TigerPositons, _GoatPositions, avilableGoats);
+
+                    // Broadcast to both clients
+                    await Task.WhenAll(
+                        c1.SendTigersInformation(temptigers),
+                        c2.SendTigersInformation(temptigers),
+                        c1.SendGoatsInformation(tempgoat),
+                        c2.SendGoatsInformation(tempgoat),
+                        c1.SendNoOfAvilableGoats(avilableGoats),
+                        c2.SendNoOfAvilableGoats(avilableGoats),
+                        c1.SendTurn(!_isPlayer1Turn), // Update turn state
+                        c2.SendTurn(!_isPlayer1Turn)
+                    );
+
+                    // Switch turns
+                    _isPlayer1Turn = !_isPlayer1Turn;
+                    Console.WriteLine("Move recived and turn switched to " + _isPlayer1Turn);
+
+                }
+            
+        }
+
+
+
         public void C1Move(int[] TigerPosServer, int[] GoatPosServer, int RemGoatsServer, bool TurnServer)
         {
+            Console.WriteLine("New xxx New");
             _TigerPositons = TigerPosServer;
             _GoatPositions = GoatPosServer;
             avilableGoats = RemGoatsServer;
@@ -182,13 +190,6 @@ namespace Network
             _GoatPositions = GoatPosServer;
             avilableGoats = RemGoatsServer;
             Turn = TurnServer;
-
-            // Only rleases when all 3 have been recived
-            //foreach(var g in GoatPosServer)
-            //{
-            //    Console.WriteLine("--------------------------- " + g);
-            //}
-
             C2MoveRecived.Release();
         }
 

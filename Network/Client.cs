@@ -67,6 +67,8 @@ namespace Network
 
         bool[] ReciveCheck = new bool[3];
 
+        private DateTime _lastUpdateTime = DateTime.MinValue;
+
         public Client(TcpClient client)
         {
             
@@ -151,8 +153,11 @@ namespace Network
                         break;
 
                 }
+
+                
                 if (ReciveCheck[0] == true && ReciveCheck[1] == true && ReciveCheck[2] == true)
                 {
+                    Console.WriteLine("New sendable recived from : " + Username);
                     NewStateRecived?.Invoke(TigerPosition, GoatPositions, AvilableGoats, turn);
                     for (int i = 0; i < ReciveCheck.Length; i++)
                     {
@@ -165,7 +170,7 @@ namespace Network
         }
 
 
-        public void SendStrings(string str)
+        public Task SendStrings(string str)
         {
             //Send the username to the server
             var connectPacket = new PacketBuilder();
@@ -175,9 +180,10 @@ namespace Network
 
             byte[] payload = connectPacket.GetCompletePacket();
             ClientSocket.Client.Send(payload);
+            return Task.CompletedTask;
         }
 
-        public void SendTurn(bool turn)
+        public async Task SendTurn(bool turn)
         {
             var connectPacket = new PacketBuilder();
             connectPacket.WriteOPCode(1);
@@ -185,10 +191,10 @@ namespace Network
             connectPacket.WriteBooleanValue(turn);
 
             byte[] payload = connectPacket.GetCompletePacket();
-            ClientSocket.Client.Send(payload);
+            await ClientSocket.Client.SendAsync(payload, SocketFlags.None);
         }
 
-        public void SendNoOfAvilableGoats(int goats)
+        public async Task SendNoOfAvilableGoats(int goats)
         {
 
             var testpacket = new PacketBuilder();
@@ -197,11 +203,11 @@ namespace Network
             testpacket.WriteNumber4bytes(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
-            ClientSocket.Client.Send(payload);
+            await ClientSocket.Client.SendAsync(payload, SocketFlags.None); // Async send
 
         }
 
-        public void SendGoatsInformation(Goat[] goats)
+        public async Task SendGoatsInformation(Goat[] goats)
         {
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(3);
@@ -209,11 +215,10 @@ namespace Network
             testpacket.WriteGoats(goats);
 
             byte[] payload = testpacket.GetCompletePacket();
-
-            ClientSocket.Client.Send(payload);
+            await ClientSocket.Client.SendAsync(payload, SocketFlags.None); // Async send
         }
 
-        public void SendTigersInformation(Tiger[] tigers)
+        public async Task SendTigersInformation(Tiger[] tigers)
         {
             var testpacket = new PacketBuilder();
             testpacket.WriteOPCode(4);
@@ -221,7 +226,7 @@ namespace Network
             testpacket.WriteTigers(tigers);
 
             byte[] payload = testpacket.GetCompletePacket();
-            ClientSocket.Client.Send(payload);
+            await ClientSocket.Client.SendAsync(payload, SocketFlags.None);
         }
 
 
